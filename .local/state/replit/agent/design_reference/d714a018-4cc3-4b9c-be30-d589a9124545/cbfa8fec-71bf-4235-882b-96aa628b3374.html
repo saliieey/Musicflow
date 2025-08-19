@@ -1,0 +1,464 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicFlow - Your Music Streaming App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'spotify-green': '#1DB954',
+                        'spotify-black': '#121212',
+                        'spotify-gray': '#1E1E1E',
+                        'spotify-dark-gray': '#282828',
+                        'spotify-light-gray': '#B3B3B3'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-spotify-black text-white font-inter overflow-x-hidden">
+
+    <!-- @COMPONENT: MainLayout -->
+    <div class="flex h-screen">
+        
+        <!-- @COMPONENT: Sidebar -->
+        <div class="w-64 bg-spotify-black border-r border-spotify-dark-gray flex flex-col">
+            <!-- Logo -->
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-spotify-green flex items-center gap-2">
+                    <i class="fas fa-music"></i>
+                    MusicFlow
+                </h1>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-3">
+                <ul class="space-y-2">
+                    <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray">
+                        <i class="fas fa-home w-5"></i>
+                        Home
+                    </a></li>
+                    <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray">
+                        <i class="fas fa-search w-5"></i>
+                        Search
+                    </a></li>
+                    <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray">
+                        <i class="fas fa-heart w-5"></i>
+                        Favorites
+                    </a></li>
+                    <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray">
+                        <i class="fas fa-fire w-5"></i>
+                        Trending
+                    </a></li>
+                </ul>
+
+                <!-- Playlists Section -->
+                <div class="mt-8">
+                    <h3 class="text-spotify-light-gray font-semibold mb-4 px-3">Your Playlists</h3>
+                    <ul class="space-y-2" data-mock="true">
+                        <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray">
+                            <i class="fas fa-list w-5"></i>
+                            My Favorites Mix
+                        </a></li>
+                        <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray">
+                            <i class="fas fa-list w-5"></i>
+                            Chill Vibes
+                        </a></li>
+                        <li><a href="#" class="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray">
+                            <i class="fas fa-list w-5"></i>
+                            Workout Mix
+                        </a></li>
+                    </ul>
+                    <button class="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray w-full mt-2" data-event="click:createPlaylist">
+                        <i class="fas fa-plus w-5"></i>
+                        Create Playlist
+                    </button>
+                </div>
+            </nav>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <div class="flex-1 flex flex-col bg-gradient-to-b from-purple-900/20 to-spotify-black">
+            
+            <!-- @COMPONENT: TopBar -->
+            <header class="p-6 bg-black/20 backdrop-blur-md border-b border-spotify-dark-gray/30">
+                <div class="flex items-center gap-4">
+                    <!-- Navigation buttons -->
+                    <div class="flex gap-2">
+                        <button class="w-8 h-8 rounded-full bg-spotify-dark-gray/50 flex items-center justify-center text-spotify-light-gray hover:text-white transition-colors">
+                            <i class="fas fa-chevron-left text-sm"></i>
+                        </button>
+                        <button class="w-8 h-8 rounded-full bg-spotify-dark-gray/50 flex items-center justify-center text-spotify-light-gray hover:text-white transition-colors">
+                            <i class="fas fa-chevron-right text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="flex-1 max-w-md relative">
+                        <input 
+                            type="text" 
+                            placeholder="Search songs, artists, or albums..." 
+                            class="w-full px-4 py-2 pl-10 bg-spotify-dark-gray/80 backdrop-blur-sm border border-spotify-dark-gray rounded-full text-white placeholder-spotify-light-gray focus:outline-none focus:ring-2 focus:ring-spotify-green focus:border-transparent"
+                            data-event="input:handleSearch"
+                        >
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-spotify-light-gray"></i>
+                    </div>
+
+                    <!-- User Profile -->
+                    <div class="flex items-center gap-3">
+                        <button class="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+                            <i class="fas fa-user text-sm"></i>
+                        </button>
+                        <span class="text-sm font-medium" data-bind="user.name">Guest User</span>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: TopBar -->
+
+            <!-- @COMPONENT: ContentArea -->
+            <main class="flex-1 overflow-y-auto p-6">
+                
+                <!-- Hero Section -->
+                <section class="mb-8">
+                    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-8 text-white relative overflow-hidden">
+                        <!-- Background pattern for visual interest -->
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <div class="relative z-10">
+                            <h2 class="text-4xl font-bold mb-2">Welcome to MusicFlow</h2>
+                            <p class="text-lg opacity-90 mb-6">Discover amazing free music from talented artists worldwide</p>
+                            <button class="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors" data-event="click:startListening">
+                                Start Listening
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Trending Section -->
+                <section class="mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold">Trending Now</h2>
+                        <button class="text-spotify-light-gray hover:text-white text-sm font-medium" data-event="click:viewAllTrending">
+                            View All
+                        </button>
+                    </div>
+                    
+                    <!-- @MAP: trendingSongs.map(song => ( -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                        <div class="group cursor-pointer" data-event="click:playSong" data-mock="true">
+                            <div class="bg-spotify-gray/30 backdrop-blur-sm p-4 rounded-lg hover:bg-spotify-gray/50 transition-all duration-300 group-hover:scale-105">
+                                <!-- Modern cityscape with neon lights for electronic music -->
+                                <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300" alt="Electronic Music Album" class="w-full aspect-square object-cover rounded-md mb-3">
+                                <div class="relative">
+                                    <h3 class="font-semibold text-sm truncate">Electronic Dreams</h3>
+                                    <p class="text-spotify-light-gray text-xs truncate">DJ Neon Wave</p>
+                                    <button class="absolute -top-12 right-2 w-10 h-10 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg" data-event="click:playPauseSong">
+                                        <i class="fas fa-play text-black text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="group cursor-pointer" data-event="click:playSong" data-mock="true">
+                            <div class="bg-spotify-gray/30 backdrop-blur-sm p-4 rounded-lg hover:bg-spotify-gray/50 transition-all duration-300 group-hover:scale-105">
+                                <!-- Acoustic guitar with warm lighting for folk music -->
+                                <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300" alt="Acoustic Folk Album" class="w-full aspect-square object-cover rounded-md mb-3">
+                                <div class="relative">
+                                    <h3 class="font-semibold text-sm truncate">Mountain Folk</h3>
+                                    <p class="text-spotify-light-gray text-xs truncate">Sarah Woods</p>
+                                    <button class="absolute -top-12 right-2 w-10 h-10 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
+                                        <i class="fas fa-play text-black text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="group cursor-pointer" data-event="click:playSong" data-mock="true">
+                            <div class="bg-spotify-gray/30 backdrop-blur-sm p-4 rounded-lg hover:bg-spotify-gray/50 transition-all duration-300 group-hover:scale-105">
+                                <!-- Jazz saxophone player in atmospheric lighting -->
+                                <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300" alt="Jazz Album" class="w-full aspect-square object-cover rounded-md mb-3">
+                                <div class="relative">
+                                    <h3 class="font-semibold text-sm truncate">Midnight Jazz</h3>
+                                    <p class="text-spotify-light-gray text-xs truncate">Blue Note Trio</p>
+                                    <button class="absolute -top-12 right-2 w-10 h-10 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
+                                        <i class="fas fa-play text-black text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="group cursor-pointer" data-event="click:playSong" data-mock="true">
+                            <div class="bg-spotify-gray/30 backdrop-blur-sm p-4 rounded-lg hover:bg-spotify-gray/50 transition-all duration-300 group-hover:scale-105">
+                                <!-- Rock concert stage with dramatic lighting -->
+                                <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300" alt="Rock Album" class="w-full aspect-square object-cover rounded-md mb-3">
+                                <div class="relative">
+                                    <h3 class="font-semibold text-sm truncate">Electric Storm</h3>
+                                    <p class="text-spotify-light-gray text-xs truncate">Thunder Road</p>
+                                    <button class="absolute -top-12 right-2 w-10 h-10 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
+                                        <i class="fas fa-play text-black text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="group cursor-pointer" data-event="click:playSong" data-mock="true">
+                            <div class="bg-spotify-gray/30 backdrop-blur-sm p-4 rounded-lg hover:bg-spotify-gray/50 transition-all duration-300 group-hover:scale-105">
+                                <!-- Classical music setup with violin and sheet music -->
+                                <img src="https://images.unsplash.com/photo-1507838153414-b4b713384a76?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300" alt="Classical Album" class="w-full aspect-square object-cover rounded-md mb-3">
+                                <div class="relative">
+                                    <h3 class="font-semibold text-sm truncate">Classical Essence</h3>
+                                    <p class="text-spotify-light-gray text-xs truncate">Symphony Orchestra</p>
+                                    <button class="absolute -top-12 right-2 w-10 h-10 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
+                                        <i class="fas fa-play text-black text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="group cursor-pointer" data-event="click:playSong" data-mock="true">
+                            <div class="bg-spotify-gray/30 backdrop-blur-sm p-4 rounded-lg hover:bg-spotify-gray/50 transition-all duration-300 group-hover:scale-105">
+                                <!-- Hip hop artist in urban setting -->
+                                <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300" alt="Hip Hop Album" class="w-full aspect-square object-cover rounded-md mb-3">
+                                <div class="relative">
+                                    <h3 class="font-semibold text-sm truncate">Urban Beats</h3>
+                                    <p class="text-spotify-light-gray text-xs truncate">MC Flow</p>
+                                    <button class="absolute -top-12 right-2 w-10 h-10 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
+                                        <i class="fas fa-play text-black text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </section>
+
+                <!-- Recently Played -->
+                <section class="mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold">Recently Played</h2>
+                        <button class="text-spotify-light-gray hover:text-white text-sm font-medium">
+                            View All
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center gap-4 bg-spotify-gray/20 backdrop-blur-sm rounded-lg p-3 hover:bg-spotify-gray/40 transition-all cursor-pointer group" data-mock="true">
+                            <!-- Cozy coffee shop interior for chill music -->
+                            <img src="https://images.unsplash.com/photo-1501594907352-04cda38ebc29?ixlib=rb-4.0.3&auto=format&fit=crop&w=80&h=80" alt="Chill Music Album" class="w-12 h-12 rounded object-cover">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm">Coffee Shop Vibes</h3>
+                                <p class="text-spotify-light-gray text-xs">Lofi Collective</p>
+                            </div>
+                            <button class="w-8 h-8 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-play text-black text-xs"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-4 bg-spotify-gray/20 backdrop-blur-sm rounded-lg p-3 hover:bg-spotify-gray/40 transition-all cursor-pointer group" data-mock="true">
+                            <!-- Sunset beach scene for summer music -->
+                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=80&h=80" alt="Summer Album" class="w-12 h-12 rounded object-cover">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm">Summer Nights</h3>
+                                <p class="text-spotify-light-gray text-xs">Beach Sounds</p>
+                            </div>
+                            <button class="w-8 h-8 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-play text-black text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Browse by Genre -->
+                <section>
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold">Browse by Genre</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-lg p-6 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden" data-mock="true">
+                            <h3 class="text-xl font-bold">Rock</h3>
+                            <i class="fas fa-guitar absolute bottom-4 right-4 text-4xl opacity-30"></i>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg p-6 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden" data-mock="true">
+                            <h3 class="text-xl font-bold">Electronic</h3>
+                            <i class="fas fa-microchip absolute bottom-4 right-4 text-4xl opacity-30"></i>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-lg p-6 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden" data-mock="true">
+                            <h3 class="text-xl font-bold">Jazz</h3>
+                            <i class="fas fa-music absolute bottom-4 right-4 text-4xl opacity-30"></i>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg p-6 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden" data-mock="true">
+                            <h3 class="text-xl font-bold">Classical</h3>
+                            <i class="fas fa-violin absolute bottom-4 right-4 text-4xl opacity-30"></i>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+            <!-- @END_COMPONENT: ContentArea -->
+        </div>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+
+    <!-- @COMPONENT: MusicPlayer -->
+    <!-- Sticky bottom music player -->
+    <div class="fixed bottom-0 left-0 right-0 bg-spotify-gray/95 backdrop-blur-xl border-t border-spotify-dark-gray/30 p-4">
+        <div class="flex items-center gap-4">
+            
+            <!-- Currently Playing Song Info -->
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+                <!-- Album art placeholder for currently playing song -->
+                <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=60&h=60" alt="Currently Playing Album" class="w-14 h-14 rounded object-cover" data-mock-image="true" data-bind="currentSong.albumArt">
+                <div class="min-w-0">
+                    <h4 class="font-medium text-sm truncate" data-bind="currentSong.title">Electronic Dreams</h4>
+                    <p class="text-spotify-light-gray text-xs truncate" data-bind="currentSong.artist">DJ Neon Wave</p>
+                </div>
+                <button class="text-spotify-light-gray hover:text-spotify-green transition-colors" data-event="click:toggleFavorite">
+                    <i class="far fa-heart"></i>
+                </button>
+            </div>
+
+            <!-- Player Controls -->
+            <div class="flex flex-col items-center flex-1 max-w-md">
+                <div class="flex items-center gap-4 mb-2">
+                    <button class="text-spotify-light-gray hover:text-white transition-colors" data-event="click:toggleShuffle" data-implementation="Toggle shuffle mode">
+                        <i class="fas fa-random text-sm"></i>
+                    </button>
+                    
+                    <button class="text-spotify-light-gray hover:text-white transition-colors" data-event="click:previousSong">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    
+                    <button class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform" data-event="click:togglePlayPause" data-implementation="Toggle between play and pause states">
+                        <i class="fas fa-play text-sm"></i>
+                    </button>
+                    
+                    <button class="text-spotify-light-gray hover:text-white transition-colors" data-event="click:nextSong">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                    
+                    <button class="text-spotify-light-gray hover:text-white transition-colors" data-event="click:toggleRepeat" data-implementation="Cycle through repeat modes: off, one, all">
+                        <i class="fas fa-redo text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="flex items-center gap-2 w-full text-xs text-spotify-light-gray">
+                    <span data-bind="currentTime">1:23</span>
+                    <div class="flex-1 bg-spotify-dark-gray rounded-full h-1 cursor-pointer group" data-event="click:seekTo" data-implementation="Allow users to click to seek to position">
+                        <div class="bg-spotify-light-gray rounded-full h-full w-1/3 group-hover:bg-spotify-green transition-colors" data-bind="progressPercentage"></div>
+                    </div>
+                    <span data-bind="totalTime">4:12</span>
+                </div>
+            </div>
+
+            <!-- Volume and Additional Controls -->
+            <div class="flex items-center gap-4 flex-1 justify-end">
+                <button class="text-spotify-light-gray hover:text-white transition-colors" data-event="click:toggleQueue">
+                    <i class="fas fa-list-ul text-sm"></i>
+                </button>
+                
+                <button class="text-spotify-light-gray hover:text-white transition-colors" data-event="click:connectDevice">
+                    <i class="fas fa-desktop text-sm"></i>
+                </button>
+                
+                <div class="flex items-center gap-2">
+                    <button class="text-spotify-light-gray hover:text-white transition-colors" data-event="click:toggleMute">
+                        <i class="fas fa-volume-up text-sm"></i>
+                    </button>
+                    <div class="w-20 bg-spotify-dark-gray rounded-full h-1 cursor-pointer group" data-event="click:adjustVolume" data-implementation="Volume control slider">
+                        <div class="bg-spotify-light-gray rounded-full h-full w-3/4 group-hover:bg-spotify-green transition-colors" data-bind="volumePercentage"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: MusicPlayer -->
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <!-- Audio element for music playback -->
+    <audio id="audioPlayer" data-implementation="HTML5 audio element for Jamendo API streaming"></audio>
+
+    <script>
+        // TODO: Implement Jamendo API integration
+        // TODO: Implement music search functionality
+        // TODO: Implement playlist management
+        // TODO: Implement favorites system
+        // TODO: Implement audio playback controls
+        // TODO: Implement local storage for user data
+
+        // Basic UI interactions (non-functional placeholders)
+        (function() {
+            // Search functionality placeholder
+            const searchInput = document.querySelector('input[type="text"]');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    // TODO: Implement real-time search using Jamendo API
+                    console.log('Searching for:', e.target.value);
+                });
+            }
+
+            // Play button interactions
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('[data-event*="play"]')) {
+                    // TODO: Implement actual music playback
+                    console.log('Play/pause clicked');
+                }
+                
+                if (e.target.closest('[data-event*="favorite"]') || e.target.closest('[data-event*="toggleFavorite"]')) {
+                    // TODO: Implement favorites toggle
+                    const heartIcon = e.target.closest('button').querySelector('i');
+                    if (heartIcon) {
+                        heartIcon.classList.toggle('far');
+                        heartIcon.classList.toggle('fas');
+                        heartIcon.classList.toggle('text-spotify-green');
+                    }
+                }
+            });
+
+            // Responsive sidebar toggle for mobile
+            function handleResize() {
+                const sidebar = document.querySelector('.w-64');
+                if (window.innerWidth < 768) {
+                    // TODO: Implement mobile sidebar toggle
+                }
+            }
+            
+            window.addEventListener('resize', handleResize);
+            handleResize();
+        })();
+
+        // TODO: Jamendo API Integration Functions
+        /*
+        async function searchMusic(query) {
+            const response = await fetch(`https://api.jamendo.com/v3.0/tracks/?client_id=YOUR_CLIENT_ID&format=json&search=${query}`);
+            return await response.json();
+        }
+
+        async function getTrendingTracks() {
+            const response = await fetch(`https://api.jamendo.com/v3.0/tracks/?client_id=YOUR_CLIENT_ID&format=json&order=popularity_total`);
+            return await response.json();
+        }
+
+        function playTrack(audioUrl) {
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.src = audioUrl;
+            audioPlayer.play();
+        }
+        */
+    </script>
+
+</body>
+</html>

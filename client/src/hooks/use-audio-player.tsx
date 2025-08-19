@@ -1,37 +1,65 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { JamendoTrack, AudioPlayerState } from "@/types/music";
 
+// Singleton audio player to prevent multiple instances
+let globalAudioRef: HTMLAudioElement | null = null;
+let globalState: AudioPlayerState = {
+  isPlaying: false,
+  currentTrack: null,
+  currentTime: 0,
+  duration: 0,
+  volume: 1,
+  isMuted: false,
+  isLoading: false,
+  queue: [],
+  currentIndex: -1,
+  isShuffled: false,
+  repeatMode: 'off',
+};
+
+let globalStateListeners: Array<(state: AudioPlayerState) => void> = [];
+
+function notifyListeners(state: AudioPlayerState) {
+  globalStateListeners.forEach(listener => listener(state));
+}
+
 export function useAudioPlayer() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [state, setState] = useState<AudioPlayerState>({
-    isPlaying: false,
-    currentTrack: null,
-    currentTime: 0,
-    duration: 0,
-    volume: 1,
-    isMuted: false,
-    isLoading: false,
-    queue: [],
-    currentIndex: -1,
-    isShuffled: false,
-    repeatMode: 'off',
-  });
+  const hookId = useRef(Math.random().toString(36).substr(2, 9));
+  
+  console.log(`useAudioPlayer hook initialized with ID: ${hookId.current}`);
+  
+  const [state, setState] = useState<AudioPlayerState>(globalState);
 
   // Initialize audio element
   useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-      audioRef.current.preload = 'metadata';
+    if (!globalAudioRef) {
+      globalAudioRef = new Audio();
+      globalAudioRef.preload = 'metadata';
+      
+      // Add audio element to DOM for proper progress tracking
+      globalAudioRef.style.display = 'none';
+      document.body.appendChild(globalAudioRef);
     }
 
-    const audio = audioRef.current;
+    const audio = globalAudioRef;
 
     const handleTimeUpdate = () => {
-      setState(prev => ({ ...prev, currentTime: audio.currentTime }));
+      console.log(`[Hook ${hookId.current}] Time update:`, audio.currentTime, audio.duration);
+      globalState.currentTime = audio.currentTime || 0;
+      globalState.duration = audio.duration || 0;
+      notifyListeners(globalState);
     };
 
     const handleDurationChange = () => {
-      setState(prev => ({ ...prev, duration: audio.duration || 0 }));
+      console.log(`[Hook ${hookId.current}] Duration change:`, audio.duration);
+      globalState.duration = audio.duration || 0;
+      notifyListeners(globalState);
+    };
+
+    const handleLoadedMetadata = () => {
+      console.log(`[Hook ${hookId.current}] Metadata loaded:`, audio.duration);
+      globalState.duration = audio.duration || 0;
+      notifyListeners(globalState);
     };
 
     const handleEnded = () => {
@@ -39,69 +67,103 @@ export function useAudioPlayer() {
     };
 
     const handleLoadStart = () => {
-      setState(prev => ({ ...prev, isLoading: true }));
+      globalState.isLoading = true;
+      notifyListeners(globalState);
     };
 
     const handleCanPlay = () => {
-      setState(prev => ({ ...prev, isLoading: false }));
+      console.log(`[Hook ${hookId.current}] Can play:`, audio.currentTime, audio.duration);
+      globalState.isLoading = false;
+      globalState.currentTime = audio.currentTime || 0;
+      globalState.duration = audio.duration || 0;
+      notifyListeners(globalState);
     };
 
-    const handleError = () => {
-      setState(prev => ({ ...prev, isLoading: false, isPlaying: false }));
-      console.error('Audio playback error');
+    const handleError = (e: Event) => {
+      console.error(`[Hook ${hookId.current}] Audio error:`, e);
+      globalState.isLoading = false;
+      globalState.isPlaying = false;
+      notifyListeners(globalState);
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('durationchange', handleDurationChange);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('loadstart', handleLoadStart);
     audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('error', handleError);
 
+    // Register this hook instance as a listener
+    globalStateListeners.push(setState);
+
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('durationchange', handleDurationChange);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('loadstart', handleLoadStart);
       audio.removeEventListener('canplay', handleCanPlay);
       audio.removeEventListener('error', handleError);
+      
+      // Remove this hook instance from listeners
+      const index = globalStateListeners.indexOf(setState);
+      if (index > -1) {
+        globalStateListeners.splice(index, 1);
+      }
+      
+      // Clean up audio element from DOM only if no listeners remain
+      if (globalStateListeners.length === 0 && globalAudioRef && document.body.contains(globalAudioRef)) {
+        document.body.removeChild(globalAudioRef);
+        globalAudioRef = null;
+      }
     };
   }, []);
 
   const playTrack = useCallback((track: JamendoTrack, queue: JamendoTrack[] = []) => {
-    if (!audioRef.current) return;
+    if (!globalAudioRef) return;
 
-    const audio = audioRef.current;
+    const audio = globalAudioRef;
     const trackIndex = queue.findIndex(t => t.id === track.id);
     
-    setState(prev => ({
-      ...prev,
-      currentTrack: track,
-      queue: queue.length > 0 ? queue : [track],
-      currentIndex: trackIndex >= 0 ? trackIndex : 0,
-      isLoading: true,
-    }));
+    globalState.currentTrack = track;
+    globalState.queue = queue.length > 0 ? queue : [track];
+    globalState.currentIndex = trackIndex >= 0 ? trackIndex : 0;
+    globalState.isLoading = true;
+    globalState.currentTime = 0;
+    globalState.duration = 0;
+    notifyListeners(globalState);
 
+    console.log(`[Hook ${hookId.current}] Playing track:`, track.name, 'Audio URL:', track.audio);
+    
     audio.src = track.audio;
     audio.load();
+    
+    // Force load metadata
+    audio.preload = 'metadata';
     
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          setState(prev => ({ ...prev, isPlaying: true, isLoading: false }));
+          console.log(`[Hook ${hookId.current}] Playback started successfully`);
+          globalState.isPlaying = true;
+          globalState.isLoading = false;
+          notifyListeners(globalState);
         })
         .catch(error => {
-          console.error('Playback failed:', error);
-          setState(prev => ({ ...prev, isPlaying: false, isLoading: false }));
+          console.error(`[Hook ${hookId.current}] Playback failed:`, error);
+          globalState.isPlaying = false;
+          globalState.isLoading = false;
+          notifyListeners(globalState);
         });
     }
   }, []);
 
   const togglePlayPause = useCallback(() => {
-    if (!audioRef.current || !state.currentTrack) return;
+    if (!globalAudioRef || !state.currentTrack) return;
 
-    const audio = audioRef.current;
+    const audio = globalAudioRef;
     
     if (state.isPlaying) {
       audio.pause();
@@ -171,26 +233,26 @@ export function useAudioPlayer() {
   }, [state.queue, state.currentIndex, state.repeatMode, state.isShuffled, playTrack]);
 
   const seekTo = useCallback((time: number) => {
-    if (!audioRef.current) return;
-    audioRef.current.currentTime = time;
+    if (!globalAudioRef) return;
+    globalAudioRef.currentTime = time;
     setState(prev => ({ ...prev, currentTime: time }));
   }, []);
 
   const setVolume = useCallback((volume: number) => {
-    if (!audioRef.current) return;
+    if (!globalAudioRef) return;
     const clampedVolume = Math.max(0, Math.min(1, volume));
-    audioRef.current.volume = clampedVolume;
+    globalAudioRef.volume = clampedVolume;
     setState(prev => ({ ...prev, volume: clampedVolume, isMuted: clampedVolume === 0 }));
   }, []);
 
   const toggleMute = useCallback(() => {
-    if (!audioRef.current) return;
+    if (!globalAudioRef) return;
     
     if (state.isMuted) {
-      audioRef.current.volume = state.volume;
+      globalAudioRef.volume = state.volume;
       setState(prev => ({ ...prev, isMuted: false }));
     } else {
-      audioRef.current.volume = 0;
+      globalAudioRef.volume = 0;
       setState(prev => ({ ...prev, isMuted: true }));
     }
   }, [state.isMuted, state.volume]);

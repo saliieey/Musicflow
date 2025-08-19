@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPlaylistSchema, insertFavoriteSchema } from "@shared/schema";
+import { config } from "../config.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Playlists API
@@ -136,7 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/jamendo/search", async (req, res) => {
     try {
       const { q, limit = 20 } = req.query;
-      const clientId = process.env.JAMENDO_CLIENT_ID;
+      const clientId = config.JAMENDO_CLIENT_ID;
       
       if (!q) {
         return res.status(400).json({ error: "Search query is required" });
@@ -175,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/jamendo/trending", async (req, res) => {
     try {
       const { limit = 20 } = req.query;
-      const clientId = process.env.JAMENDO_CLIENT_ID;
+      const clientId = config.JAMENDO_CLIENT_ID;
       
       if (!clientId) {
         return res.status(503).json({ 
@@ -210,7 +211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/jamendo/genres", async (req, res) => {
     try {
       const { genre, limit = 20 } = req.query;
-      const clientId = process.env.JAMENDO_CLIENT_ID;
+      const clientId = config.JAMENDO_CLIENT_ID;
       
       if (!genre) {
         return res.status(400).json({ error: "Genre is required" });

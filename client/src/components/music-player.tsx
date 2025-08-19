@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { apiRequest } from "@/lib/queryClient";
+import { useEffect, useState } from "react";
 
 function formatTime(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
@@ -44,6 +45,30 @@ export function MusicPlayer() {
     toggleShuffle,
     toggleRepeat,
   } = useAudioPlayer();
+
+  // Debug: Log values received from hook
+  console.log('MusicPlayer Component Values:', {
+    currentTime,
+    duration,
+    progressPercentage: duration > 0 ? (currentTime / duration) * 100 : 0,
+    isPlaying,
+    currentTrack: currentTrack?.name
+  });
+
+  // Force re-render when values change
+  useEffect(() => {
+    console.log('MusicPlayer useEffect - Values changed:', { currentTime, duration });
+  }, [currentTime, duration]);
+
+  // Test: Add a simple counter to see if component re-renders
+  const [testCounter, setTestCounter] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTestCounter(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [userId] = useLocalStorage("userId", "guest");
   const queryClient = useQueryClient();
@@ -208,16 +233,58 @@ export function MusicPlayer() {
           </div>
 
           {/* Progress Bar */}
-          <div className="flex items-center gap-2 w-full text-xs text-spotify-light-gray">
-            <span className="w-10 text-right">{formatTime(currentTime)}</span>
-            <Slider
-              value={[progressPercentage]}
-              onValueChange={handleSeek}
-              max={100}
-              step={0.1}
-              className="flex-1"
-            />
-            <span className="w-10">{formatTime(duration)}</span>
+          <div className="flex items-center gap-2 w-full text-xs text-spotify-light-gray mb-2">
+            <span className="w-10 text-right font-mono">{formatTime(currentTime)}</span>
+            <div className="flex-1 relative border-2 border-red-500 p-2">
+              {/* Working Progress Bar */}
+              <div className="mb-2">
+                <div className="text-xs text-green-400 mb-1">Progress Bar:</div>
+                <div className="w-full bg-gray-700 rounded-full h-3 relative">
+                  <div 
+                    className="bg-green-500 h-3 rounded-full transition-all duration-300 relative"
+                    style={{ width: `${progressPercentage}%` }}
+                  >
+                    {/* Progress thumb */}
+                    <div 
+                      className="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white rounded-full border-2 border-green-500 shadow-lg"
+                      style={{ right: '-8px' }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Clickable Progress Bar */}
+              <div className="w-full bg-gray-700 rounded-full h-3 relative cursor-pointer" onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const percentage = (clickX / rect.width) * 100;
+                const newTime = (percentage / 100) * duration;
+                seekTo(newTime);
+              }}>
+                <div 
+                  className="bg-green-500 h-3 rounded-full transition-all duration-300 relative"
+                  style={{ width: `${progressPercentage}%` }}
+                >
+                  {/* Progress thumb */}
+                  <div 
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white rounded-full border-2 border-green-500 shadow-lg"
+                    style={{ right: '-8px' }}
+                  ></div>
+                </div>
+              </div>
+              
+              {/* Debug info */}
+              <div className="text-xs text-red-400 mt-1">
+                Debug: {progressPercentage.toFixed(1)}% | Time: {currentTime.toFixed(1)}s | Duration: {duration.toFixed(1)}s
+              </div>
+              <div className="text-xs text-yellow-400 mt-1">
+                Raw Values: currentTime={currentTime}, duration={duration}, progressPercentage={progressPercentage}
+              </div>
+              <div className="text-xs text-blue-400 mt-1">
+                Test Counter: {testCounter} | Hook Values: currentTime={currentTime}, duration={duration}
+              </div>
+            </div>
+            <span className="w-10 font-mono">{formatTime(duration)}</span>
           </div>
         </div>
 
