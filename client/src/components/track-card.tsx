@@ -26,7 +26,7 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
     enabled: !!userId,
   });
 
-  const isFavorite = favoriteCheck?.isFavorite || false;
+  const isFavorite = (favoriteCheck as any)?.isFavorite || false;
 
   const addToFavoritesMutation = useMutation({
     mutationFn: async () => {

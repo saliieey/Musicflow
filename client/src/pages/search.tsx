@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search as SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { TrackList } from "@/components/track-list";
+import { ApiError } from "@/components/api-error";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
 import { jamendoApi } from "@/lib/jamendo-api";
 import { JamendoTrack } from "@/types/music";
@@ -11,7 +12,7 @@ export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
   const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
 
-  const { data: searchData, isLoading } = useQuery({
+  const { data: searchData, isLoading, error } = useQuery({
     queryKey: ["search-tracks", searchQuery],
     queryFn: () => jamendoApi.search(searchQuery, 50),
     enabled: searchQuery.length > 2,
@@ -70,6 +71,11 @@ export default function Search() {
                 </div>
               ))}
             </div>
+          ) : error ? (
+            <ApiError 
+              title="Search Unavailable"
+              message="Unable to search music. Please check your API configuration."
+            />
           ) : tracks.length > 0 ? (
             <TrackList
               tracks={tracks}

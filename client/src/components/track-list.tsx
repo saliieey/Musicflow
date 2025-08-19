@@ -37,7 +37,7 @@ export function TrackList({
     enabled: !!userId,
   });
 
-  const favoriteTrackIds = favorites.map((fav: any) => fav.trackId);
+  const favoriteTrackIds = (favorites as any[]).map((fav: any) => fav.trackId);
 
   const addToFavoritesMutation = useMutation({
     mutationFn: async (track: JamendoTrack) => {

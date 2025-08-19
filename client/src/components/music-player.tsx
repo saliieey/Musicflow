@@ -53,7 +53,7 @@ export function MusicPlayer() {
     enabled: !!userId && !!currentTrack,
   });
 
-  const isFavorite = currentTrack && favorites.some((fav: any) => fav.trackId === currentTrack.id);
+  const isFavorite = currentTrack && (favorites as any[]).some((fav: any) => fav.trackId === currentTrack.id);
 
   const addToFavoritesMutation = useMutation({
     mutationFn: async () => {

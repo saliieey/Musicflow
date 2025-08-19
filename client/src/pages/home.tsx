@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { jamendoApi } from "@/lib/jamendo-api";
 import { TrackCard } from "@/components/track-card";
+import { ApiError } from "@/components/api-error";
 import { Button } from "@/components/ui/button";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
 import { JamendoTrack } from "@/types/music";
@@ -16,12 +17,12 @@ const genres = [
 export default function Home() {
   const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
 
-  const { data: trendingData, isLoading: trendingLoading } = useQuery({
+  const { data: trendingData, isLoading: trendingLoading, error: trendingError } = useQuery({
     queryKey: ["trending-tracks"],
     queryFn: () => jamendoApi.getTrending(12),
   });
 
-  const { data: popularData, isLoading: popularLoading } = useQuery({
+  const { data: popularData, isLoading: popularLoading, error: popularError } = useQuery({
     queryKey: ["popular-tracks"],
     queryFn: () => jamendoApi.getTrending(6),
   });
@@ -99,6 +100,11 @@ export default function Home() {
               </div>
             ))}
           </div>
+        ) : trendingError ? (
+          <ApiError 
+            title="Unable to Load Trending Music"
+            message="Check your Jamendo API key configuration to load music"
+          />
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {trendingTracks.slice(0, 6).map((track) => (
@@ -133,6 +139,10 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        ) : popularError ? (
+          <div className="text-center py-8">
+            <p className="text-spotify-light-gray">Unable to load popular tracks</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

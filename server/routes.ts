@@ -136,10 +136,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/jamendo/search", async (req, res) => {
     try {
       const { q, limit = 20 } = req.query;
-      const clientId = process.env.JAMENDO_CLIENT_ID || "56d30c95";
+      const clientId = process.env.JAMENDO_CLIENT_ID;
       
       if (!q) {
         return res.status(400).json({ error: "Search query is required" });
+      }
+
+      if (!clientId) {
+        return res.status(503).json({ 
+          error: "Jamendo API key required",
+          message: "Please provide a JAMENDO_CLIENT_ID environment variable"
+        });
       }
 
       const response = await fetch(
@@ -151,6 +158,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const data = await response.json();
+      
+      if (data.headers?.status === "failed") {
+        return res.status(503).json({
+          error: "Jamendo API Error",
+          message: data.headers.error_message || "API request failed"
+        });
+      }
+      
       res.json(data);
     } catch (error) {
       res.status(500).json({ error: "Failed to search tracks" });
@@ -160,7 +175,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/jamendo/trending", async (req, res) => {
     try {
       const { limit = 20 } = req.query;
-      const clientId = process.env.JAMENDO_CLIENT_ID || "56d30c95";
+      const clientId = process.env.JAMENDO_CLIENT_ID;
+      
+      if (!clientId) {
+        return res.status(503).json({ 
+          error: "Jamendo API key required",
+          message: "Please provide a valid JAMENDO_CLIENT_ID. Go to https://developer.jamendo.com/ to get a free API key."
+        });
+      }
       
       const response = await fetch(
         `https://api.jamendo.com/v3.0/tracks/?client_id=${clientId}&format=json&order=popularity_total&limit=${limit}&include=musicinfo&audioformat=mp32`
@@ -171,6 +193,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const data = await response.json();
+      
+      if (data.headers?.status === "failed") {
+        return res.status(503).json({
+          error: "Jamendo API Error", 
+          message: `${data.headers.error_message}. Please check your API key at https://developer.jamendo.com/`
+        });
+      }
+      
       res.json(data);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch trending tracks" });
@@ -180,10 +210,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/jamendo/genres", async (req, res) => {
     try {
       const { genre, limit = 20 } = req.query;
-      const clientId = process.env.JAMENDO_CLIENT_ID || "56d30c95";
+      const clientId = process.env.JAMENDO_CLIENT_ID;
       
       if (!genre) {
         return res.status(400).json({ error: "Genre is required" });
+      }
+
+      if (!clientId) {
+        return res.status(503).json({ 
+          error: "Jamendo API key required",
+          message: "Please provide a JAMENDO_CLIENT_ID environment variable"
+        });
       }
 
       const response = await fetch(
@@ -195,6 +232,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const data = await response.json();
+      
+      if (data.headers?.status === "failed") {
+        return res.status(503).json({
+          error: "Jamendo API Error",
+          message: data.headers.error_message || "API request failed"
+        });
+      }
+      
       res.json(data);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch genre tracks" });

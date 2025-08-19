@@ -5,11 +5,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/sidebar";
 import { MusicPlayer } from "@/components/music-player";
-import Home from "@/pages/home";
-import Search from "@/pages/search";
-import Favorites from "@/pages/favorites";
-import Trending from "@/pages/trending";
-import NotFound from "@/pages/not-found";
+import Home from "./pages/home";
+import Search from "./pages/search";
+import Favorites from "./pages/favorites";
+import Trending from "./pages/trending";
+import NotFound from "./pages/not-found";
 import { useEffect } from "react";
 
 function Router() {

@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useState } from "react";
-import { PlaylistDialog } from "./playlist-dialog";
+import { PlaylistDialog } from "@/components/playlist-dialog";
 
 const navigation = [
   { name: "Home", href: "/", icon: Home },
@@ -66,15 +66,12 @@ export function Sidebar() {
               Your Playlists
             </h3>
             <ul className="space-y-2">
-              {playlists.map((playlist: any) => (
+              {(playlists as any[]).map((playlist: any) => (
                 <li key={playlist.id}>
-                  <a
-                    href="#"
-                    className="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray"
-                  >
+                  <div className="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray cursor-pointer">
                     <List className="w-5 h-5" />
                     <span className="truncate">{playlist.name}</span>
-                  </a>
+                  </div>
                 </li>
               ))}
             </ul>

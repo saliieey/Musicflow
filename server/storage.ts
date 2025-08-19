@@ -59,9 +59,11 @@ export class MemStorage implements IStorage {
   async createPlaylist(userId: string, insertPlaylist: InsertPlaylist): Promise<Playlist> {
     const id = randomUUID();
     const playlist: Playlist = {
-      ...insertPlaylist,
       id,
       userId,
+      name: insertPlaylist.name,
+      description: insertPlaylist.description || null,
+      tracks: insertPlaylist.tracks || [],
       createdAt: new Date(),
     };
     this.playlists.set(id, playlist);

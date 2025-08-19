@@ -14,7 +14,7 @@ export default function Favorites() {
     enabled: !!userId,
   });
 
-  const tracks: JamendoTrack[] = favorites.map((fav: any) => fav.trackData);
+  const tracks: JamendoTrack[] = (favorites as any[]).map((fav: any) => fav.trackData);
 
   const handlePlayTrack = (track: JamendoTrack, queue?: JamendoTrack[]) => {
     playTrack(track, queue || tracks);

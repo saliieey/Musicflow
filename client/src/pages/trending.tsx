@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { TrendingUp } from "lucide-react";
 import { TrackList } from "@/components/track-list";
 import { TrackCard } from "@/components/track-card";
+import { ApiError } from "@/components/api-error";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
 import { jamendoApi } from "@/lib/jamendo-api";
 import { JamendoTrack } from "@/types/music";
@@ -12,7 +13,7 @@ export default function Trending() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
 
-  const { data: trendingData, isLoading } = useQuery({
+  const { data: trendingData, isLoading, error } = useQuery({
     queryKey: ["trending-tracks-full"],
     queryFn: () => jamendoApi.getTrending(100),
   });
@@ -80,6 +81,11 @@ export default function Trending() {
             </div>
           ))}
         </div>
+      ) : error ? (
+        <ApiError 
+          title="Trending Music Unavailable"
+          message="Unable to load trending tracks. Please check your API configuration."
+        />
       ) : tracks.length > 0 ? (
         viewMode === 'list' ? (
           <TrackList
