@@ -98,6 +98,28 @@
   --radius: 1.3rem;
 }
 
+/* Music Player Progress Bar Styling */
+.music-player-progress {
+  background-color: hsl(0 0% 20%) !important;
+  height: 4px !important;
+  border-radius: 2px !important;
+}
+
+.music-player-progress-range {
+  background-color: hsl(141 76% 48%) !important;
+  height: 4px !important;
+  border-radius: 2px !important;
+}
+
+.music-player-progress-thumb {
+  background-color: white !important;
+  border: 2px solid hsl(141 76% 48%) !important;
+  height: 12px !important;
+  width: 12px !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
 /* Custom progress bar styling for better visibility */
 .progress-bar-track {
   background-color: hsl(0 0% 20%) !important;

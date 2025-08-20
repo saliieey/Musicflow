@@ -37,7 +37,7 @@ function App() {
           <Sidebar />
           
           <div className="flex-1 flex flex-col bg-gradient-to-b from-purple-900/20 to-spotify-black">
-            <main className="flex-1 overflow-y-auto pb-24">
+            <main className="flex-1 overflow-y-auto pb-32">
               <Router />
             </main>
           </div>
