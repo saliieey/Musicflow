@@ -29,7 +29,24 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    // Handle different query key patterns
+    let url: string;
+    
+    if (queryKey[0] === "/api/favorites" && queryKey[2] === "check") {
+      // Handle favorites check endpoint: ["/api/favorites", trackId, "check", userId]
+      const trackId = queryKey[1];
+      const userId = queryKey[3];
+      url = `/api/favorites/${trackId}/check?userId=${userId}`;
+    } else if (queryKey[0] === "/api/favorites" && queryKey[1]) {
+      // Handle favorites list endpoint: ["/api/favorites", userId]
+      const userId = queryKey[1];
+      url = `/api/favorites?userId=${userId}`;
+    } else {
+      // Fallback to joining with "/"
+      url = queryKey.join("/") as string;
+    }
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 
@@ -47,7 +64,7 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      staleTime: 5 * 60 * 1000, // 5 minutes
       retry: false,
     },
     mutations: {

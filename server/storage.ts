@@ -16,6 +16,7 @@ export interface IStorage {
   addFavorite(userId: string, favorite: InsertFavorite): Promise<Favorite>;
   removeFavorite(userId: string, trackId: string): Promise<boolean>;
   isFavorite(userId: string, trackId: string): Promise<boolean>;
+  cleanupDuplicateFavorites(): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -84,12 +85,33 @@ export class MemStorage implements IStorage {
   }
 
   async getUserFavorites(userId: string): Promise<Favorite[]> {
-    return Array.from(this.favorites.values()).filter(
+    const userFavorites = Array.from(this.favorites.values()).filter(
       (favorite) => favorite.userId === userId
     );
+    
+    // Remove duplicates by trackId (keep the most recent one)
+    const uniqueFavorites = new Map<string, Favorite>();
+    userFavorites.forEach(favorite => {
+      const existing = uniqueFavorites.get(favorite.trackId);
+      if (!existing || favorite.createdAt > existing.createdAt) {
+        uniqueFavorites.set(favorite.trackId, favorite);
+      }
+    });
+    
+    return Array.from(uniqueFavorites.values());
   }
 
   async addFavorite(userId: string, insertFavorite: InsertFavorite): Promise<Favorite> {
+    // Check if this track is already in favorites for this user
+    const existingFavorite = Array.from(this.favorites.values()).find(
+      (fav) => fav.userId === userId && fav.trackId === insertFavorite.trackId
+    );
+    
+    if (existingFavorite) {
+      // If already exists, return the existing favorite instead of creating a duplicate
+      return existingFavorite;
+    }
+    
     const id = randomUUID();
     const favorite: Favorite = {
       ...insertFavorite,
@@ -105,14 +127,35 @@ export class MemStorage implements IStorage {
     const favorite = Array.from(this.favorites.values()).find(
       (fav) => fav.userId === userId && fav.trackId === trackId
     );
-    if (!favorite) return false;
-    return this.favorites.delete(favorite.id);
+    
+    if (!favorite) {
+      return false;
+    }
+    
+    const deleted = this.favorites.delete(favorite.id);
+    
+    return deleted;
   }
 
   async isFavorite(userId: string, trackId: string): Promise<boolean> {
-    return Array.from(this.favorites.values()).some(
+    const result = Array.from(this.favorites.values()).some(
       (fav) => fav.userId === userId && fav.trackId === trackId
     );
+    return result;
+  }
+
+  async cleanupDuplicateFavorites(): Promise<void> {
+    const uniqueFavorites = new Map<string, Favorite>();
+    Array.from(this.favorites.values()).forEach(favorite => {
+      const existing = uniqueFavorites.get(favorite.trackId);
+      if (!existing || favorite.createdAt > existing.createdAt) {
+        uniqueFavorites.set(favorite.trackId, favorite);
+      }
+    });
+    this.favorites.clear();
+    uniqueFavorites.forEach(favorite => {
+      this.favorites.set(randomUUID(), favorite);
+    });
   }
 }
 

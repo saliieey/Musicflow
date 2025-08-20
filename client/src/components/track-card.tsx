@@ -21,12 +21,14 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: favoriteCheck } = useQuery({
-    queryKey: ["/api/favorites", track.id, "check", { userId }],
+  // Use the main favorites list to check if this track is favorited
+  const { data: favorites = [] } = useQuery({
+    queryKey: ["/api/favorites", userId],
     enabled: !!userId,
   });
 
-  const isFavorite = (favoriteCheck as any)?.isFavorite || false;
+  // Check if this track is in the favorites list
+  const isFavorite = (favorites as any[]).some((fav: any) => fav.trackId === track.id);
 
   const addToFavoritesMutation = useMutation({
     mutationFn: async () => {
@@ -44,12 +46,27 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
         },
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
-      toast({
-        title: "Added to favorites",
-        description: `${track.name} by ${track.artist_name}`,
+    onSuccess: (response) => {
+      // Invalidate all favorites queries for this user
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/favorites", userId],
+        exact: false 
       });
+      
+      // Check if the song was already in favorites
+      if (response.status === 200) {
+        // Song was already in favorites
+        toast({
+          title: "Already in favorites",
+          description: `${track.name} is already in your favorites`,
+        });
+      } else {
+        // Song was added to favorites
+        toast({
+          title: "Added to favorites",
+          description: `${track.name} by ${track.artist_name}`,
+        });
+      }
     },
     onError: () => {
       toast({
@@ -65,7 +82,11 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
       return apiRequest("DELETE", `/api/favorites/${track.id}?userId=${userId}`, {});
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      // Invalidate all favorites queries for this user
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/favorites", userId],
+        exact: false 
+      });
       toast({
         title: "Removed from favorites",
         description: `${track.name} by ${track.artist_name}`,

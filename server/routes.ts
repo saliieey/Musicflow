@@ -70,11 +70,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/favorites", async (req, res) => {
     try {
       const userId = req.query.userId as string;
+      
       if (!userId) {
         return res.status(400).json({ error: "User ID is required" });
       }
       
       const favorites = await storage.getUserFavorites(userId);
+      
       res.json(favorites);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch favorites" });
@@ -84,12 +86,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/favorites", async (req, res) => {
     try {
       const userId = req.body.userId;
+      
       if (!userId) {
         return res.status(400).json({ error: "User ID is required" });
       }
 
       const validatedData = insertFavoriteSchema.parse(req.body);
+      
+      // Check if already exists
+      const existingFavorite = await storage.isFavorite(userId, validatedData.trackId);
+      if (existingFavorite) {
+        // Return success but indicate it was already favorited
+        return res.status(200).json({ 
+          message: "Track already in favorites",
+          alreadyExists: true 
+        });
+      }
+      
       const favorite = await storage.addFavorite(userId, validatedData);
+      
       res.status(201).json(favorite);
     } catch (error) {
       res.status(400).json({ error: "Invalid favorite data" });
@@ -103,6 +118,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!userId) {
         return res.status(400).json({ error: "User ID is required" });
+      }
+      
+      // Check if favorite exists before trying to remove
+      const exists = await storage.isFavorite(userId, trackId);
+      
+      if (!exists) {
+        return res.status(404).json({ error: "Favorite not found" });
       }
       
       const removed = await storage.removeFavorite(userId, trackId);
@@ -127,9 +149,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const isFavorite = await storage.isFavorite(userId, trackId);
+      
       res.json({ isFavorite });
     } catch (error) {
       res.status(500).json({ error: "Failed to check favorite status" });
+    }
+  });
+
+  // Cleanup duplicate favorites endpoint
+  app.post("/api/favorites/cleanup", async (req, res) => {
+    try {
+      await storage.cleanupDuplicateFavorites();
+      res.json({ message: "Duplicate favorites cleaned up successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to cleanup duplicate favorites" });
     }
   });
 

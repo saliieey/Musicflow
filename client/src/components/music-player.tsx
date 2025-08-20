@@ -75,7 +75,7 @@ export function MusicPlayer() {
   const queryClient = useQueryClient();
 
   const { data: favorites = [] } = useQuery({
-    queryKey: ["/api/favorites", { userId }],
+    queryKey: ["/api/favorites", userId],
     enabled: !!userId && !!currentTrack,
   });
 
@@ -98,8 +98,18 @@ export function MusicPlayer() {
         },
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+    onSuccess: (response) => {
+      // Invalidate all favorites queries for this user
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/favorites", userId],
+        exact: false 
+      });
+      
+      // Show appropriate message based on response
+      if (response.status === 200) {
+        // Song was already in favorites
+        console.log("Song already in favorites");
+      }
     },
   });
 
@@ -109,7 +119,11 @@ export function MusicPlayer() {
       return apiRequest("DELETE", `/api/favorites/${currentTrack.id}?userId=${userId}`, {});
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      // Invalidate all favorites queries for this user
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/favorites", userId],
+        exact: false 
+      });
     },
   });
 

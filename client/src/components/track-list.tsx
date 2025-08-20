@@ -33,7 +33,7 @@ export function TrackList({
   const { toast } = useToast();
 
   const { data: favorites = [] } = useQuery({
-    queryKey: ["/api/favorites", { userId }],
+    queryKey: ["/api/favorites", userId],
     enabled: !!userId,
   });
 
@@ -55,12 +55,27 @@ export function TrackList({
         },
       });
     },
-    onSuccess: (_, track) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
-      toast({
-        title: "Added to favorites",
-        description: `${track.name} by ${track.artist_name}`,
+    onSuccess: (response, track) => {
+      // Invalidate all favorites queries for this user
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/favorites", userId],
+        exact: false 
       });
+      
+      // Check if the song was already in favorites
+      if (response.status === 200) {
+        // Song was already in favorites
+        toast({
+          title: "Already in favorites",
+          description: `${track.name} is already in your favorites`,
+        });
+      } else {
+        // Song was added to favorites
+        toast({
+          title: "Added to favorites",
+          description: `${track.name} by ${track.artist_name}`,
+        });
+      }
     },
   });
 
@@ -70,7 +85,11 @@ export function TrackList({
     },
     onSuccess: (_, trackId) => {
       const track = tracks.find(t => t.id === trackId);
-      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      // Invalidate all favorites queries for this user
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/favorites", userId],
+        exact: false 
+      });
       if (track) {
         toast({
           title: "Removed from favorites",

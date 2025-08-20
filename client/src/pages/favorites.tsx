@@ -10,7 +10,7 @@ export default function Favorites() {
   const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
 
   const { data: favorites = [], isLoading } = useQuery({
-    queryKey: ["/api/favorites", { userId }],
+    queryKey: ["/api/favorites", userId],
     enabled: !!userId,
   });
 
@@ -24,7 +24,7 @@ export default function Favorites() {
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-          <Heart className="w-8 h-8 text-white fill-white" />
+          <Heart className="w-8 h-4 text-white fill-white" />
         </div>
         <div>
           <h1 className="text-3xl font-bold">Liked Songs</h1>
