@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Play, Heart, MoreHorizontal } from "lucide-react";
+import { Play, Heart, MoreHorizontal, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { JamendoTrack } from "@/types/music";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface TrackCardProps {
   track: JamendoTrack;
@@ -24,6 +25,12 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
   // Use the main favorites list to check if this track is favorited
   const { data: favorites = [] } = useQuery({
     queryKey: ["/api/favorites", userId],
+    enabled: !!userId,
+  });
+
+  // Fetch playlists for add-to-playlist menu
+  const { data: playlists = [] } = useQuery({
+    queryKey: ["/api/playlists", userId],
     enabled: !!userId,
   });
 
@@ -101,6 +108,51 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
     },
   });
 
+  const addToPlaylistMutation = useMutation({
+    mutationFn: async (playlistId: string) => {
+      const response = await apiRequest("POST", `/api/playlists/${playlistId}/tracks`, {
+        track: {
+          id: track.id,
+          name: track.name,
+          artist_name: track.artist_name,
+          album_name: track.album_name,
+          album_image: track.album_image,
+          audio: track.audio,
+          duration: track.duration,
+        },
+      });
+      return response;
+    },
+    onSuccess: (response, playlistId) => {
+      // Invalidate ALL playlist queries to ensure proper sync
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/playlists"],
+        exact: false 
+      });
+      
+      // Show appropriate message based on response
+      if (response.alreadyExists) {
+        toast({
+          title: "Already in playlist",
+          description: `${track.name} is already in this playlist`,
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Added to playlist",
+          description: `${track.name} was added successfully`,
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Failed to add to playlist",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleFavoriteToggle = () => {
     if (isFavorite) {
       removeFromFavoritesMutation.mutate();
@@ -169,14 +221,40 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
             />
           </Button>
           
-          <Button
-            size="icon"
-            variant="ghost"
-            className="w-6 h-6 text-spotify-light-gray hover:text-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <MoreHorizontal className="w-4 h-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="w-6 h-6 text-spotify-light-gray hover:text-white"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-spotify-gray border-spotify-dark-gray">
+              <DropdownMenuLabel className="text-spotify-light-gray">Add to playlist</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {(playlists as any[]).length === 0 ? (
+                <DropdownMenuItem className="text-spotify-light-gray">
+                  No playlists yet
+                </DropdownMenuItem>
+              ) : (
+                (playlists as any[]).map((pl: any) => (
+                  <DropdownMenuItem
+                    key={pl.id}
+                    className="text-white hover:bg-spotify-dark-gray"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToPlaylistMutation.mutate(pl.id);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> {pl.name}
+                  </DropdownMenuItem>
+                ))
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>

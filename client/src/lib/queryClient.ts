@@ -11,7 +11,7 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
-): Promise<Response> {
+): Promise<any> {
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
@@ -20,7 +20,7 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
-  return res;
+  return await res.json();
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -41,6 +41,14 @@ export const getQueryFn: <T>(options: {
       // Handle favorites list endpoint: ["/api/favorites", userId]
       const userId = queryKey[1];
       url = `/api/favorites?userId=${userId}`;
+    } else if (queryKey[0] === "/api/playlists" && queryKey[1] && typeof queryKey[1] === "string" && queryKey[1].includes("-")) {
+      // Handle individual playlist endpoint: ["/api/playlists", playlistId] (UUID contains hyphens)
+      const playlistId = queryKey[1];
+      url = `/api/playlists/${playlistId}`;
+    } else if (queryKey[0] === "/api/playlists" && queryKey[1]) {
+      // Handle playlists list endpoint: ["/api/playlists", userId]
+      const userId = queryKey[1];
+      url = `/api/playlists?userId=${userId}`;
     } else {
       // Fallback to joining with "/"
       url = queryKey.join("/") as string;

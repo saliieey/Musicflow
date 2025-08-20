@@ -31,7 +31,12 @@ export function PlaylistDialog({ open, onOpenChange }: PlaylistDialogProps) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/playlists"] });
+      // Invalidate ALL playlist queries to ensure proper sync
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/playlists"],
+        exact: false 
+      });
+      
       toast({
         title: "Playlist created",
         description: `"${name}" has been added to your library.`,

@@ -20,6 +20,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/playlists/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const playlist = await storage.getPlaylist(id);
+      
+      if (!playlist) {
+        return res.status(404).json({ error: "Playlist not found" });
+      }
+      
+      res.json(playlist);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch playlist" });
+    }
+  });
+
   app.post("/api/playlists", async (req, res) => {
     try {
       const userId = req.body.userId;
@@ -35,34 +51,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete playlist
+  app.delete("/api/playlists/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId } = req.query;
+      
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      const deleted = await storage.deletePlaylist(id, userId as string);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Playlist not found or not authorized" });
+      }
+
+      res.json({ message: "Playlist deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete playlist" });
+    }
+  });
+
+  // Update playlist details
   app.put("/api/playlists/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const validatedData = insertPlaylistSchema.partial().parse(req.body);
-      const playlist = await storage.updatePlaylist(id, validatedData);
+      const { name, description } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ error: "Playlist name is required" });
+      }
+
+      const updated = await storage.updatePlaylist(id, { name, description });
+      
+      if (!updated) {
+        return res.status(404).json({ error: "Playlist not found" });
+      }
+
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update playlist" });
+    }
+  });
+
+  // Get playlist share info
+  app.get("/api/playlists/:id/share", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const playlist = await storage.getPlaylist(id);
       
       if (!playlist) {
         return res.status(404).json({ error: "Playlist not found" });
       }
-      
-      res.json(playlist);
+
+      const shareInfo = {
+        id: playlist.id,
+        name: playlist.name,
+        description: playlist.description,
+        trackCount: (playlist.tracks as any[]).length,
+        shareUrl: `${req.protocol}://${req.get('host')}/playlist/${playlist.id}`,
+        createdAt: playlist.createdAt
+      };
+
+      res.json(shareInfo);
     } catch (error) {
-      res.status(400).json({ error: "Invalid playlist data" });
+      res.status(500).json({ error: "Failed to get playlist share info" });
     }
   });
 
-  app.delete("/api/playlists/:id", async (req, res) => {
+  app.post("/api/playlists/:id/tracks", async (req, res) => {
     try {
       const { id } = req.params;
-      const deleted = await storage.deletePlaylist(id);
+      const track = req.body?.track;
       
-      if (!deleted) {
+      if (!track) {
+        return res.status(400).json({ error: "Track data is required" });
+      }
+
+      // First check if track is already in playlist
+      const existingPlaylist = await storage.getPlaylist(id);
+      
+      if (!existingPlaylist) {
         return res.status(404).json({ error: "Playlist not found" });
       }
+
+      const trackExists = (existingPlaylist.tracks as any[]).some((t: any) => t.id === track.id);
       
-      res.status(204).send();
+      if (trackExists) {
+        // Track is already in playlist
+        return res.json({ 
+          ...existingPlaylist, 
+          message: "Track is already in this playlist", 
+          alreadyExists: true 
+        });
+      }
+
+      // Track doesn't exist, add it
+      const result = await storage.addTrackToPlaylist(id, track);
+      res.json({ ...result, message: "Track added successfully" });
+      
     } catch (error) {
-      res.status(500).json({ error: "Failed to delete playlist" });
+      res.status(500).json({ error: "Failed to add track to playlist" });
+    }
+  });
+
+  app.delete("/api/playlists/:id/tracks/:trackId", async (req, res) => {
+    try {
+      const { id, trackId } = req.params;
+      const updated = await storage.removeTrackFromPlaylist(id, trackId);
+      if (!updated) return res.status(404).json({ error: "Playlist not found" });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to remove track from playlist" });
     }
   });
 

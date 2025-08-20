@@ -9,6 +9,7 @@ import Home from "./pages/home";
 import Search from "./pages/search";
 import Favorites from "./pages/favorites";
 import Trending from "./pages/trending";
+import PlaylistPage from "./pages/playlist";
 import NotFound from "./pages/not-found";
 import { useEffect } from "react";
 
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/search" component={Search} />
       <Route path="/favorites" component={Favorites} />
       <Route path="/trending" component={Trending} />
+      <Route path="/playlist/:id" component={PlaylistPage} />
       <Route component={NotFound} />
     </Switch>
   );

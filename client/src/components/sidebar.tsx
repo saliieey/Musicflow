@@ -19,7 +19,7 @@ export function Sidebar() {
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
 
   const { data: playlists = [] } = useQuery({
-    queryKey: ["/api/playlists", { userId }],
+    queryKey: ["/api/playlists", userId],
     enabled: !!userId,
   });
 
@@ -66,14 +66,23 @@ export function Sidebar() {
               Your Playlists
             </h3>
             <ul className="space-y-2">
-              {(playlists as any[]).map((playlist: any) => (
-                <li key={playlist.id}>
-                  <div className="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray cursor-pointer">
-                    <List className="w-5 h-5" />
-                    <span className="truncate">{playlist.name}</span>
-                  </div>
-                </li>
-              ))}
+              {(playlists as any[]).map((playlist: any) => {
+                const isActive = location === `/playlist/${playlist.id}`;
+                return (
+                  <li key={playlist.id}>
+                    <Link href={`/playlist/${playlist.id}`}>
+                      <a
+                        className={`flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray cursor-pointer ${
+                          isActive ? "text-white bg-spotify-dark-gray" : ""
+                        }`}
+                      >
+                        <List className="w-5 h-5" />
+                        <span className="truncate">{playlist.name}</span>
+                      </a>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
             <Button
               variant="ghost"

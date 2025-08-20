@@ -11,12 +11,13 @@ export interface IStorage {
   createPlaylist(userId: string, playlist: InsertPlaylist): Promise<Playlist>;
   updatePlaylist(id: string, playlist: Partial<InsertPlaylist>): Promise<Playlist | undefined>;
   deletePlaylist(id: string): Promise<boolean>;
+  addTrackToPlaylist(playlistId: string, track: any): Promise<Playlist | undefined>;
+  removeTrackFromPlaylist(playlistId: string, trackId: string): Promise<Playlist | undefined>;
   
   getUserFavorites(userId: string): Promise<Favorite[]>;
   addFavorite(userId: string, favorite: InsertFavorite): Promise<Favorite>;
   removeFavorite(userId: string, trackId: string): Promise<boolean>;
   isFavorite(userId: string, trackId: string): Promise<boolean>;
-  cleanupDuplicateFavorites(): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -54,7 +55,9 @@ export class MemStorage implements IStorage {
   }
 
   async getPlaylist(id: string): Promise<Playlist | undefined> {
-    return this.playlists.get(id);
+    const playlist = this.playlists.get(id);
+    
+    return playlist;
   }
 
   async createPlaylist(userId: string, insertPlaylist: InsertPlaylist): Promise<Playlist> {
@@ -71,34 +74,51 @@ export class MemStorage implements IStorage {
     return playlist;
   }
 
-  async updatePlaylist(id: string, updates: Partial<InsertPlaylist>): Promise<Playlist | undefined> {
+  async updatePlaylist(id: string, updates: { name: string; description?: string }): Promise<Playlist | undefined> {
     const playlist = this.playlists.get(id);
     if (!playlist) return undefined;
     
-    const updatedPlaylist = { ...playlist, ...updates };
+    const updatedPlaylist = { ...playlist, ...updates } as Playlist;
     this.playlists.set(id, updatedPlaylist);
     return updatedPlaylist;
   }
 
-  async deletePlaylist(id: string): Promise<boolean> {
-    return this.playlists.delete(id);
+  async deletePlaylist(id: string, userId: string): Promise<boolean> {
+    const playlist = this.playlists.get(id);
+    
+    if (!playlist || playlist.userId !== userId) {
+      return false;
+    }
+
+    this.playlists.delete(id);
+    return true;
+  }
+
+  async addTrackToPlaylist(playlistId: string, track: any): Promise<Playlist | undefined> {
+    const playlist = this.playlists.get(playlistId);
+    
+    if (!playlist) return undefined;
+
+    // Add the track (duplicate check is handled in the route)
+    const updated = { ...playlist, tracks: [...(playlist.tracks as any[]), track] } as Playlist;
+    
+    this.playlists.set(playlistId, updated);
+    return updated;
+  }
+
+  async removeTrackFromPlaylist(playlistId: string, trackId: string): Promise<Playlist | undefined> {
+    const playlist = this.playlists.get(playlistId);
+    if (!playlist) return undefined;
+
+    const updated = { ...playlist, tracks: (playlist.tracks as any[]).filter((t: any) => t.id !== trackId) } as Playlist;
+    this.playlists.set(playlistId, updated);
+    return updated;
   }
 
   async getUserFavorites(userId: string): Promise<Favorite[]> {
-    const userFavorites = Array.from(this.favorites.values()).filter(
+    return Array.from(this.favorites.values()).filter(
       (favorite) => favorite.userId === userId
     );
-    
-    // Remove duplicates by trackId (keep the most recent one)
-    const uniqueFavorites = new Map<string, Favorite>();
-    userFavorites.forEach(favorite => {
-      const existing = uniqueFavorites.get(favorite.trackId);
-      if (!existing || favorite.createdAt > existing.createdAt) {
-        uniqueFavorites.set(favorite.trackId, favorite);
-      }
-    });
-    
-    return Array.from(uniqueFavorites.values());
   }
 
   async addFavorite(userId: string, insertFavorite: InsertFavorite): Promise<Favorite> {
@@ -142,20 +162,6 @@ export class MemStorage implements IStorage {
       (fav) => fav.userId === userId && fav.trackId === trackId
     );
     return result;
-  }
-
-  async cleanupDuplicateFavorites(): Promise<void> {
-    const uniqueFavorites = new Map<string, Favorite>();
-    Array.from(this.favorites.values()).forEach(favorite => {
-      const existing = uniqueFavorites.get(favorite.trackId);
-      if (!existing || favorite.createdAt > existing.createdAt) {
-        uniqueFavorites.set(favorite.trackId, favorite);
-      }
-    });
-    this.favorites.clear();
-    uniqueFavorites.forEach(favorite => {
-      this.favorites.set(randomUUID(), favorite);
-    });
   }
 }
 
