@@ -62,10 +62,10 @@ export default function Home() {
   };
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-3 sm:p-4 md:p-6 space-y-6 md:space-y-8">
       {/* Header */}
-      <header className="bg-black/20 backdrop-blur-md border-b border-spotify-dark-gray/30 -mx-6 -mt-6 px-6 py-6">
-        <div className="flex items-center justify-end">
+      <header className="bg-black/20 backdrop-blur-md border-b border-spotify-dark-gray/30 -mx-3 sm:-mx-4 md:-mx-6 -mt-3 sm:-mt-4 md:-mt-6 px-3 sm:px-4 md:px-6 py-4 md:py-6">
+        <div className="flex items-center justify-center sm:justify-end">
           {/* User Profile */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
@@ -78,30 +78,32 @@ export default function Home() {
 
       {/* Hero Section */}
       <section>
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-8 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-4 sm:p-6 md:p-8 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-black/20"></div>
-          <div className="relative z-10">
-            <h2 className="text-4xl font-bold mb-2">Welcome to MusicFlow</h2>
-            <p className="text-lg opacity-90 mb-6">Discover amazing free music from talented artists worldwide</p>
-            <Button 
-              className="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
-              onClick={() => {
-                const trendingSection = document.querySelector('section:nth-child(3)');
-                if (trendingSection) {
-                  trendingSection.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-            >
-              Start Listening
-            </Button>
+          <div className="relative z-10 text-center sm:text-left">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Welcome to MusicFlow</h2>
+            <p className="text-base sm:text-lg opacity-90 mb-4 md:mb-6">Discover amazing free music from talented artists worldwide</p>
+            <div className="flex justify-center sm:justify-start">
+              <Button 
+                className="bg-white text-purple-600 px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors text-sm sm:text-base"
+                onClick={() => {
+                  const trendingSection = document.querySelector('section:nth-child(3)');
+                  if (trendingSection) {
+                    trendingSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                Start Listening
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Trending Section */}
       <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Trending Now</h2>
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold">Trending Now</h2>
           <Button 
             variant="ghost" 
             className="text-spotify-light-gray hover:text-white text-sm font-medium"
@@ -112,9 +114,9 @@ export default function Home() {
         </div>
         
         {trendingLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-spotify-gray/30 p-4 rounded-lg animate-pulse">
+              <div key={i} className="bg-spotify-gray/30 p-3 sm:p-4 rounded-lg animate-pulse">
                 <div className="aspect-square bg-spotify-dark-gray rounded-md mb-3"></div>
                 <div className="h-4 bg-spotify-dark-gray rounded mb-2"></div>
                 <div className="h-3 bg-spotify-dark-gray rounded w-2/3"></div>
@@ -127,7 +129,7 @@ export default function Home() {
             message="Check your Jamendo API key configuration to load music"
           />
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
             {trendingTracks.slice(0, showAllTrending ? trendingTracks.length : 6).map((track) => (
               <TrackCard
                 key={track.id}
@@ -142,8 +144,8 @@ export default function Home() {
 
       {/* Popular Tracks Section */}
       <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Popular Tracks</h2>
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold">Popular Tracks</h2>
           <Button 
             variant="ghost" 
             className="text-spotify-light-gray hover:text-white text-sm font-medium"
@@ -154,10 +156,10 @@ export default function Home() {
         </div>
         
         {popularLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 bg-spotify-gray/20 rounded-lg p-3 animate-pulse">
-                <div className="w-12 h-12 bg-spotify-dark-gray rounded"></div>
+              <div key={i} className="flex items-center gap-3 sm:gap-4 bg-spotify-gray/20 rounded-lg p-3 animate-pulse">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-spotify-dark-gray rounded"></div>
                 <div className="flex-1">
                   <div className="h-4 bg-spotify-dark-gray rounded mb-2"></div>
                   <div className="h-3 bg-spotify-dark-gray rounded w-1/2"></div>
@@ -170,17 +172,17 @@ export default function Home() {
             <p className="text-spotify-light-gray">Unable to load popular tracks</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {popularTracks.slice(0, showAllPopular ? popularTracks.length : 4).map((track) => (
               <div
                 key={track.id}
-                className="flex items-center gap-4 bg-spotify-gray/20 backdrop-blur-sm rounded-lg p-3 hover:bg-spotify-gray/40 transition-all cursor-pointer group"
+                className="flex items-center gap-3 sm:gap-4 bg-spotify-gray/20 backdrop-blur-sm rounded-lg p-3 hover:bg-spotify-gray/40 transition-all cursor-pointer group"
                 onClick={() => handlePlayTrack(track)}
               >
                 <img
                   src={track.album_image || track.image || `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=80&h=80`}
                   alt={track.album_name}
-                  className="w-12 h-12 rounded object-cover"
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover"
                 />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm text-white truncate">{track.name}</h3>
@@ -200,21 +202,21 @@ export default function Home() {
 
       {/* Browse by Genre */}
       <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Browse by Genre</h2>
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold">Browse by Genre</h2>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {genres.map((genre) => (
             <div
               key={genre.name}
-              className={`bg-gradient-to-br ${genre.gradient} rounded-lg p-6 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden group ${
+              className={`bg-gradient-to-br ${genre.gradient} rounded-lg p-4 sm:p-6 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden group ${
                 selectedGenre === genre.name ? 'ring-4 ring-white ring-opacity-50 scale-105' : ''
               }`}
               onClick={() => handleGenreClick(genre.name)}
             >
-              <h3 className="text-xl font-bold text-white">{genre.name}</h3>
-              <div className="absolute bottom-4 right-4 text-4xl opacity-30 group-hover:opacity-50 transition-opacity">
+              <h3 className="text-lg sm:text-xl font-bold text-white">{genre.name}</h3>
+              <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 text-2xl sm:text-4xl opacity-30 group-hover:opacity-50 transition-opacity">
                 {genre.icon}
               </div>
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
@@ -224,9 +226,9 @@ export default function Home() {
 
         {/* Genre-specific music display */}
         {selectedGenre && (
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-3">
+          <div className="mt-6 md:mt-8">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
+              <h3 className="text-xl sm:text-2xl font-bold flex items-center gap-3">
                 <span className={`bg-gradient-to-r ${genres.find(g => g.name === selectedGenre)?.gradient} bg-clip-text text-transparent`}>
                   {selectedGenre} Music
                 </span>
@@ -242,9 +244,9 @@ export default function Home() {
             </div>
 
             {genreLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="bg-spotify-gray/30 p-4 rounded-lg animate-pulse">
+                  <div key={i} className="bg-spotify-gray/30 p-3 sm:p-4 rounded-lg animate-pulse">
                     <div className="aspect-square bg-spotify-dark-gray rounded-md mb-3"></div>
                     <div className="h-4 bg-spotify-dark-gray rounded mb-2"></div>
                     <div className="h-3 bg-spotify-dark-gray rounded w-2/3"></div>
@@ -256,7 +258,7 @@ export default function Home() {
                 <p className="text-spotify-light-gray">Unable to load {selectedGenre} music</p>
               </div>
             ) : genreTracks.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                 {genreTracks.map((track) => (
                   <TrackCard
                     key={track.id}

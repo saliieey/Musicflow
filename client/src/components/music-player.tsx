@@ -162,16 +162,16 @@ export function MusicPlayer() {
     <>
       <div className="fixed bottom-0 left-0 right-0 bg-spotify-black border-t border-spotify-dark-gray/30 z-50">
         {/* Main Player Bar */}
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-2 sm:px-3 md:px-4 py-2 md:py-3">
           {/* Left Section - Track Info */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             <img
               src={displayTrack.album_image || displayTrack.image || `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=56&h=56`}
               alt={displayTrack.album_name}
-              className="w-14 h-14 rounded object-cover"
+              className="w-10 h-10 sm:w-12 md:w-14 h-10 sm:h-12 md:h-14 rounded object-cover"
             />
-            <div className="min-w-0">
-              <h4 className="font-medium text-sm truncate text-white hover:underline cursor-pointer">
+            <div className="min-w-0 hidden sm:block">
+              <h4 className="font-medium text-xs sm:text-sm truncate text-white hover:underline cursor-pointer">
                 {displayTrack.name}
               </h4>
               <p className="text-spotify-light-gray text-xs truncate hover:underline cursor-pointer">
@@ -182,7 +182,7 @@ export function MusicPlayer() {
               <Button
                 size="icon"
                 variant="ghost"
-                className="text-spotify-light-gray hover:text-spotify-green transition-colors"
+                className="text-spotify-light-gray hover:text-spotify-green transition-colors sm:hidden"
                 onClick={handleFavoriteToggle}
               >
                 <Heart
@@ -196,8 +196,8 @@ export function MusicPlayer() {
           </div>
 
           {/* Center Section - Player Controls */}
-          <div className="flex flex-col items-center flex-1 max-w-md">
-            <div className="flex items-center gap-4 mb-2">
+          <div className="flex flex-col items-center flex-1 max-w-xs sm:max-w-md">
+            <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-1 md:mb-2">
               <Button
                 size="icon"
                 variant="ghost"
@@ -216,18 +216,18 @@ export function MusicPlayer() {
                 className="text-spotify-light-gray hover:text-white transition-colors"
                 onClick={handlePrevious}
               >
-                <SkipBack className="w-5 h-5" />
+                <SkipBack className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
               
               <Button
                 size="icon"
-                className="w-10 h-10 bg-white hover:bg-gray-100 rounded-full text-black hover:scale-105 transition-transform"
+                className="w-8 h-8 sm:w-10 sm:h-10 bg-white hover:bg-gray-100 rounded-full text-black hover:scale-105 transition-transform"
                 onClick={togglePlayPause}
               >
                 {isPlaying ? (
-                  <Pause className="w-5 h-5 fill-black" />
+                  <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-black" />
                 ) : (
-                  <Play className="w-5 h-5 fill-black" />
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-black" />
                 )}
               </Button>
               
@@ -237,7 +237,7 @@ export function MusicPlayer() {
                 className="text-spotify-light-gray hover:text-white transition-colors"
                 onClick={handleNext}
               >
-                <SkipForward className="w-5 h-5" />
+                <SkipForward className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
               
               <Button
@@ -258,7 +258,7 @@ export function MusicPlayer() {
 
             {/* Progress Bar with Time Display */}
             <div className="flex items-center gap-2 w-full text-xs text-spotify-light-gray">
-              <span className="w-10 text-right font-mono">{formatTime(currentTime)}</span>
+              <span className="w-8 sm:w-10 text-right font-mono text-xs">{formatTime(currentTime)}</span>
               <div className="flex-1 relative">
                 <div 
                   className="w-full bg-spotify-dark-gray/50 rounded-full h-1 cursor-pointer"
@@ -275,35 +275,56 @@ export function MusicPlayer() {
                     style={{ width: `${progressPercentage}%` }}
                   >
                     <div 
-                      className="absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg opacity-0 hover:opacity-100 transition-opacity"
-                      style={{ right: '-6px' }}
+                      className="absolute right-0 top-1/2 transform -translate-y-1/2 w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full shadow-lg opacity-0 hover:opacity-100 transition-opacity"
+                      style={{ right: '-4px' }}
                     />
                   </div>
                 </div>
               </div>
-              <span className="w-10 font-mono">{formatTime(duration)}</span>
+              <span className="w-8 sm:w-10 font-mono text-xs">{formatTime(duration)}</span>
             </div>
           </div>
 
           {/* Right Section - Volume and Additional Controls */}
-          <div className="flex items-center gap-4 flex-1 justify-end">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-spotify-light-gray hover:text-white transition-colors"
-            >
-              <List className="w-4 h-4" />
-            </Button>
+          <div className="flex items-center gap-2 sm:gap-4 flex-1 justify-end">
+            {/* Mobile: Show favorite button here */}
+            {currentTrack && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-spotify-light-gray hover:text-spotify-green transition-colors sm:hidden"
+                onClick={handleFavoriteToggle}
+              >
+                <Heart
+                  className={cn(
+                    "w-4 h-4",
+                    isFavorite ? "fill-spotify-green text-spotify-green" : ""
+                  )}
+                />
+              </Button>
+            )}
+
+            {/* Desktop: Show additional controls */}
+            <div className="hidden sm:flex items-center gap-2 sm:gap-4">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-spotify-light-gray hover:text-white transition-colors"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-spotify-light-gray hover:text-white transition-colors"
+              >
+                <Monitor className="w-4 h-4" />
+              </Button>
+            </div>
             
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-spotify-light-gray hover:text-white transition-colors"
-            >
-              <Monitor className="w-4 h-4" />
-            </Button>
-            
-            <div className="flex items-center gap-2">
+            {/* Volume Control - Hidden on very small screens */}
+            <div className="hidden sm:flex items-center gap-2">
               <Button
                 size="icon"
                 variant="ghost"
@@ -321,7 +342,7 @@ export function MusicPlayer() {
                 onValueChange={handleVolumeChange}
                 max={100}
                 step={1}
-                className="w-20"
+                className="w-16 sm:w-20"
               />
             </div>
           </div>

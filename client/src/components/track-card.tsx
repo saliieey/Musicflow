@@ -171,17 +171,17 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onPlay(track)}
     >
-      <div className="bg-spotify-gray/30 backdrop-blur-sm p-4 rounded-lg hover:bg-spotify-gray/50 transition-all duration-300 group-hover:scale-105">
+      <div className="bg-spotify-gray/30 backdrop-blur-sm p-3 sm:p-4 rounded-lg hover:bg-spotify-gray/50 transition-all duration-300 group-hover:scale-105">
         <div className="relative">
           <img
             src={track.album_image || track.image || `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300`}
             alt={`${track.album_name} by ${track.artist_name}`}
-            className="w-full aspect-square object-cover rounded-md mb-3"
+            className="w-full aspect-square object-cover rounded-md mb-2 sm:mb-3"
           />
           <Button
             size="icon"
             className={cn(
-              "absolute -bottom-2 right-2 w-10 h-10 bg-spotify-green rounded-full shadow-lg transition-all duration-300",
+              "absolute -bottom-1 sm:-bottom-2 right-1 sm:right-2 w-8 h-8 sm:w-10 sm:h-10 bg-spotify-green rounded-full shadow-lg transition-all duration-300",
               "hover:bg-spotify-green hover:scale-110",
               isHovered || isPlaying ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
             )}
@@ -190,12 +190,12 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
               onPlay(track);
             }}
           >
-            <Play className="w-4 h-4 text-black fill-black" />
+            <Play className="w-3 h-3 sm:w-4 sm:h-4 text-black fill-black" />
           </Button>
         </div>
         
         <div className="space-y-1">
-          <h3 className="font-semibold text-sm text-white truncate">
+          <h3 className="font-semibold text-xs sm:text-sm text-white truncate">
             {track.name}
           </h3>
           <p className="text-spotify-light-gray text-xs truncate">
@@ -203,11 +203,15 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
           </p>
         </div>
 
-        <div className="flex items-center justify-between mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Mobile: Always show controls, Desktop: Show on hover */}
+        <div className={cn(
+          "flex items-center justify-between mt-2 transition-opacity",
+          "sm:opacity-0 sm:group-hover:opacity-100" // Hidden on desktop until hover, always visible on mobile
+        )}>
           <Button
             size="icon"
             variant="ghost"
-            className="w-6 h-6 text-spotify-light-gray hover:text-white"
+            className="w-6 h-6 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
               handleFavoriteToggle();
@@ -215,7 +219,7 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
           >
             <Heart
               className={cn(
-                "w-4 h-4",
+                "w-3 h-3 sm:w-4 sm:h-4",
                 isFavorite ? "fill-spotify-green text-spotify-green" : ""
               )}
             />
@@ -226,10 +230,10 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
               <Button
                 size="icon"
                 variant="ghost"
-                className="w-6 h-6 text-spotify-light-gray hover:text-white"
+                className="w-6 h-6 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-white"
                 onClick={(e) => e.stopPropagation()}
               >
-                <MoreHorizontal className="w-4 h-4" />
+                <MoreHorizontal className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-spotify-gray border-spotify-dark-gray">

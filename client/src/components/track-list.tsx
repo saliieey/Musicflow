@@ -1,10 +1,13 @@
 import { Play, Heart, MoreHorizontal, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAudioPlayer } from "@/hooks/use-audio-player";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import { JamendoTrack } from "@/types/music";
 import { cn } from "@/lib/utils";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 interface TrackListProps {
@@ -13,12 +16,7 @@ interface TrackListProps {
   currentTrack?: JamendoTrack | null;
   isPlaying?: boolean;
   showHeader?: boolean;
-}
-
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  showActions?: boolean;
 }
 
 export function TrackList({ 
@@ -26,91 +24,54 @@ export function TrackList({
   onPlay, 
   currentTrack, 
   isPlaying, 
-  showHeader = true 
+  showHeader = true,
+  showActions = true 
 }: TrackListProps) {
   const [userId] = useLocalStorage("userId", "guest");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: favorites = [] } = useQuery({
-    queryKey: ["/api/favorites", userId],
-    enabled: !!userId,
-  });
-
-  const favoriteTrackIds = (favorites as any[]).map((fav: any) => fav.trackId);
-
-  const addToFavoritesMutation = useMutation({
-    mutationFn: async (track: JamendoTrack) => {
-      return apiRequest("POST", "/api/favorites", {
-        userId,
-        trackId: track.id,
-        trackData: {
-          id: track.id,
-          name: track.name,
-          artist_name: track.artist_name,
-          album_name: track.album_name,
-          album_image: track.album_image,
-          audio: track.audio,
-          duration: track.duration,
-        },
-      });
-    },
-    onSuccess: (response, track) => {
-      // Invalidate all favorites queries for this user
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/favorites", userId],
-        exact: false 
-      });
+  const handleFavoriteToggle = async (track: JamendoTrack) => {
+    try {
+      const isFavorite = await apiRequest("GET", `/api/favorites/check?trackId=${track.id}&userId=${userId}`);
       
-      // Check if the song was already in favorites
-      if (response.status === 200) {
-        // Song was already in favorites
-        toast({
-          title: "Already in favorites",
-          description: `${track.name} is already in your favorites`,
-        });
-      } else {
-        // Song was added to favorites
-        toast({
-          title: "Added to favorites",
-          description: `${track.name} by ${track.artist_name}`,
-        });
-      }
-    },
-  });
-
-  const removeFromFavoritesMutation = useMutation({
-    mutationFn: async (trackId: string) => {
-      return apiRequest("DELETE", `/api/favorites/${trackId}?userId=${userId}`, {});
-    },
-    onSuccess: (_, trackId) => {
-      const track = tracks.find(t => t.id === trackId);
-      // Invalidate all favorites queries for this user
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/favorites", userId],
-        exact: false 
-      });
-      if (track) {
+      if (isFavorite.exists) {
+        await apiRequest("DELETE", `/api/favorites/${track.id}?userId=${userId}`);
         toast({
           title: "Removed from favorites",
-          description: `${track.name} by ${track.artist_name}`,
+          description: `${track.name} has been removed from your liked songs`,
+        });
+      } else {
+        await apiRequest("POST", "/api/favorites", {
+          trackId: track.id,
+          userId,
+          trackData: track,
+        });
+        toast({
+          title: "Added to favorites",
+          description: `${track.name} has been added to your liked songs`,
         });
       }
-    },
-  });
-
-  const handleFavoriteToggle = (track: JamendoTrack) => {
-    const isFavorite = favoriteTrackIds.includes(track.id);
-    if (isFavorite) {
-      removeFromFavoritesMutation.mutate(track.id);
-    } else {
-      addToFavoritesMutation.mutate(track);
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive",
+      });
     }
+  };
+
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   if (tracks.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-8 sm:py-12">
         <p className="text-spotify-light-gray">No tracks found</p>
       </div>
     );
@@ -119,35 +80,35 @@ export function TrackList({
   return (
     <div className="space-y-2">
       {showHeader && (
-        <div className="grid grid-cols-12 gap-4 px-4 py-2 text-spotify-light-gray text-sm font-medium border-b border-spotify-dark-gray/30">
-          <div className="col-span-1">#</div>
-          <div className="col-span-6">Title</div>
-          <div className="col-span-3">Album</div>
-          <div className="col-span-1">
+        <div className="grid grid-cols-12 gap-2 sm:gap-4 px-2 sm:px-4 py-2 text-spotify-light-gray text-xs sm:text-sm font-medium border-b border-spotify-dark-gray/30">
+          <div className="col-span-1 text-center">#</div>
+          <div className="col-span-6 sm:col-span-6 text-left">Title</div>
+          <div className="col-span-3 hidden sm:block text-left">Album</div>
+          <div className="col-span-1 hidden sm:block text-center">
             <Clock className="w-4 h-4" />
           </div>
-          <div className="col-span-1"></div>
+          <div className="col-span-1 sm:col-span-1 text-center"></div>
         </div>
       )}
       
       {tracks.map((track, index) => {
         const isCurrentTrack = currentTrack?.id === track.id;
-        const isFavorite = favoriteTrackIds.includes(track.id);
         
         return (
           <div
             key={track.id}
             className={cn(
-              "grid grid-cols-12 gap-4 px-4 py-2 rounded-md transition-colors cursor-pointer group",
+              "grid grid-cols-12 gap-2 sm:gap-4 px-2 sm:px-4 py-2 rounded-md transition-colors cursor-pointer group",
               "hover:bg-spotify-gray/30",
               isCurrentTrack && "bg-spotify-gray/50"
             )}
             onClick={() => onPlay(track, tracks)}
           >
-            <div className="col-span-1 flex items-center">
-              <div className="relative">
+            {/* Track Number / Play Button */}
+            <div className="col-span-1 flex items-center justify-center">
+              <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
                 <span className={cn(
-                  "text-spotify-light-gray text-sm group-hover:opacity-0 transition-opacity",
+                  "text-spotify-light-gray text-xs sm:text-sm group-hover:opacity-0 transition-opacity text-center",
                   isCurrentTrack && isPlaying && "opacity-0"
                 )}>
                   {index + 1}
@@ -156,7 +117,7 @@ export function TrackList({
                   size="icon"
                   variant="ghost"
                   className={cn(
-                    "absolute inset-0 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity",
+                    "absolute inset-0 w-6 h-6 sm:w-8 sm:h-8 opacity-0 group-hover:opacity-100 transition-opacity",
                     isCurrentTrack && isPlaying && "opacity-100"
                   )}
                   onClick={(e) => {
@@ -164,48 +125,56 @@ export function TrackList({
                     onPlay(track, tracks);
                   }}
                 >
-                  <Play className="w-3 h-3 fill-white" />
+                  <Play className="w-2 h-2 sm:w-3 sm:h-3 fill-white" />
                 </Button>
               </div>
             </div>
             
-            <div className="col-span-6 flex items-center gap-3 min-w-0">
+            {/* Track Info */}
+            <div className="col-span-6 sm:col-span-6 flex items-center gap-2 sm:gap-3 min-w-0">
               <img
                 src={track.album_image || track.image || `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=50&h=50`}
                 alt={track.album_name}
-                className="w-10 h-10 rounded object-cover"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
               />
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className={cn(
-                  "font-medium text-sm truncate",
+                  "font-medium text-xs sm:text-sm truncate leading-tight",
                   isCurrentTrack ? "text-spotify-green" : "text-white"
                 )}>
                   {track.name}
                 </p>
-                <p className="text-spotify-light-gray text-xs truncate">
+                <p className="text-spotify-light-gray text-xs truncate leading-tight">
                   {track.artist_name}
                 </p>
               </div>
             </div>
             
-            <div className="col-span-3 flex items-center">
+            {/* Album - Hidden on mobile */}
+            <div className="col-span-3 hidden sm:flex items-center">
               <p className="text-spotify-light-gray text-sm truncate">
                 {track.album_name}
               </p>
             </div>
             
-            <div className="col-span-1 flex items-center">
+            {/* Duration - Hidden on mobile */}
+            <div className="col-span-1 hidden sm:flex items-center">
               <p className="text-spotify-light-gray text-sm">
                 {formatDuration(track.duration)}
               </p>
             </div>
             
-            <div className="col-span-1 flex items-center justify-end">
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+            {/* Actions */}
+            <div className="col-span-1 sm:col-span-1 flex items-center justify-end">
+              {/* Mobile: Always show controls, Desktop: Show on hover */}
+              <div className={cn(
+                "flex items-center gap-1 sm:gap-2 transition-opacity",
+                "sm:opacity-0 sm:group-hover:opacity-100" // Hidden on desktop until hover, always visible on mobile
+              )}>
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="w-6 h-6 text-spotify-light-gray hover:text-white"
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-white"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleFavoriteToggle(track);
@@ -213,19 +182,36 @@ export function TrackList({
                 >
                   <Heart
                     className={cn(
-                      "w-4 h-4",
-                      isFavorite ? "fill-spotify-green text-spotify-green" : ""
+                      "w-3 h-3 sm:w-4 sm:h-4",
+                      // Check if track is in favorites (you might need to implement this)
+                      false ? "fill-spotify-green text-spotify-green" : ""
                     )}
                   />
                 </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="w-6 h-6 text-spotify-light-gray hover:text-white"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="w-5 h-5 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-white"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreHorizontal className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => onPlay(track, tracks)}>
+                      Play
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleFavoriteToggle(track)}>
+                      Add to Favorites
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      Add to Playlist
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>

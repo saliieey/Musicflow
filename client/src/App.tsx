@@ -36,14 +36,17 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div className="flex h-screen bg-spotify-black text-white font-inter overflow-hidden">
+          {/* Sidebar - hidden on mobile, visible on desktop */}
           <Sidebar />
           
-          <div className="flex-1 flex flex-col bg-gradient-to-b from-purple-900/20 to-spotify-black">
-            <main className="flex-1 overflow-y-auto pb-32">
+          {/* Main Content - full width on mobile, adjusted on desktop */}
+          <div className="flex-1 flex flex-col bg-gradient-to-b from-purple-900/20 to-spotify-black lg:ml-0">
+            <main className="flex-1 overflow-y-auto pb-32 lg:pb-32">
               <Router />
             </main>
           </div>
           
+          {/* Music Player - always visible */}
           <MusicPlayer />
         </div>
         <Toaster />

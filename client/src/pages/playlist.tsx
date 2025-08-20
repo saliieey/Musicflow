@@ -158,11 +158,11 @@ export default function PlaylistPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="animate-pulse">
-          <div className="h-64 bg-spotify-gray/30 rounded-lg mb-6"></div>
-          <div className="space-y-4">
-            <div className="h-8 bg-spotify-gray/30 rounded w-1/3"></div>
+          <div className="h-48 sm:h-64 bg-spotify-gray/30 rounded-lg mb-4 md:mb-6"></div>
+          <div className="space-y-3 md:space-y-4">
+            <div className="h-6 sm:h-8 bg-spotify-gray/30 rounded w-1/3"></div>
             <div className="h-4 bg-spotify-gray/30 rounded w-1/2"></div>
           </div>
         </div>
@@ -172,7 +172,7 @@ export default function PlaylistPage() {
 
   if (!playlist) {
     return (
-      <div className="p-6 text-center">
+      <div className="p-3 sm:p-4 md:p-6 text-center">
         <p className="text-spotify-light-gray">Playlist not found</p>
         <Button 
           onClick={() => setLocation("/")}
@@ -185,20 +185,20 @@ export default function PlaylistPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+      {/* Header - Fixed positioning to avoid conflict with hamburger */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 md:mb-6 mt-16 sm:mt-0">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setLocation("/")}
-          className="text-spotify-light-gray hover:text-white"
+          className="text-spotify-light-gray hover:text-white self-start sm:self-auto w-10 h-10 sm:w-auto sm:h-auto"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
 
         {/* Playlist Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-end">
           <Button
             variant="ghost"
             size="sm"
@@ -297,29 +297,29 @@ export default function PlaylistPage() {
         </div>
       </div>
 
-      {/* Playlist Header */}
-      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl p-8 text-white relative overflow-hidden">
+      {/* Playlist Header - Centered for mobile */}
+      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl p-4 sm:p-6 md:p-8 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative z-10">
-          <h1 className="text-4xl font-bold mb-2">{playlist.name}</h1>
+        <div className="relative z-10 text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{playlist.name}</h1>
           {playlist.description && (
-            <p className="text-lg opacity-90 mb-4">{playlist.description}</p>
+            <p className="text-base sm:text-lg opacity-90 mb-3 md:mb-4">{playlist.description}</p>
           )}
-          <p className="text-lg opacity-90 mb-6">
+          <p className="text-base sm:text-lg opacity-90 mb-4 md:mb-6">
             {tracks.length} {tracks.length === 1 ? 'song' : 'songs'}
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center sm:justify-start">
             <Button 
-              className="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors"
+              className="bg-white text-purple-600 px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors text-sm sm:text-base"
               onClick={() => tracks.length > 0 && handlePlayTrack(tracks[0], tracks)}
             >
-              <Play className="w-5 h-5 mr-2" />
+              <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Play All
             </Button>
             
             <Button
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-purple-600 px-6 py-3 rounded-full font-semibold transition-colors"
+              className="border-white text-white hover:bg-white hover:text-purple-600 px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-colors text-sm sm:text-base"
               onClick={() => setLocation("/")}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -333,20 +333,20 @@ export default function PlaylistPage() {
       {tracks.length > 0 ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Tracks</h2>
-            <p className="text-spotify-light-gray">{tracks.length} songs</p>
+            <h2 className="text-xl sm:text-2xl font-bold">Tracks</h2>
+            <p className="text-spotify-light-gray text-sm sm:text-base">{tracks.length} songs</p>
           </div>
           
           <div className="space-y-2">
             {/* Header */}
-            <div className="grid grid-cols-12 gap-4 px-4 py-2 text-spotify-light-gray text-sm font-medium border-b border-spotify-dark-gray/30">
-              <div className="col-span-1">#</div>
-              <div className="col-span-6">Title</div>
-              <div className="col-span-3">Album</div>
-              <div className="col-span-1">
+            <div className="grid grid-cols-12 gap-2 sm:gap-4 px-2 sm:px-4 py-2 text-spotify-light-gray text-xs sm:text-sm font-medium border-b border-spotify-dark-gray/30">
+              <div className="col-span-1 text-center">#</div>
+              <div className="col-span-6 sm:col-span-6 text-left">Title</div>
+              <div className="col-span-3 hidden sm:block text-left">Album</div>
+              <div className="col-span-1 hidden sm:block text-center">
                 <Clock className="w-4 h-4" />
               </div>
-              <div className="col-span-1"></div>
+              <div className="col-span-1 sm:col-span-1 text-center"></div>
             </div>
             
             {/* Track List */}
@@ -357,16 +357,17 @@ export default function PlaylistPage() {
                 <div
                   key={track.id}
                   className={cn(
-                    "grid grid-cols-12 gap-4 px-4 py-2 rounded-md transition-colors cursor-pointer group",
+                    "grid grid-cols-12 gap-2 sm:gap-4 px-2 sm:px-4 py-2 rounded-md transition-colors cursor-pointer group",
                     "hover:bg-spotify-gray/30",
                     isCurrentTrack && "bg-spotify-gray/50"
                   )}
                   onClick={() => handlePlayTrack(track, tracks)}
                 >
-                  <div className="col-span-1 flex items-center">
-                    <div className="relative">
+                  {/* Track Number / Play Button */}
+                  <div className="col-span-1 flex items-center justify-center">
+                    <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
                       <span className={cn(
-                        "text-spotify-light-gray text-sm group-hover:opacity-0 transition-opacity",
+                        "text-spotify-light-gray text-xs sm:text-sm group-hover:opacity-0 transition-opacity",
                         isCurrentTrack && isPlaying && "opacity-0"
                       )}>
                         {index + 1}
@@ -375,7 +376,7 @@ export default function PlaylistPage() {
                         size="icon"
                         variant="ghost"
                         className={cn(
-                          "absolute inset-0 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity",
+                          "absolute inset-0 w-6 h-6 sm:w-8 sm:h-8 opacity-0 group-hover:opacity-100 transition-opacity",
                           isCurrentTrack && isPlaying && "opacity-100"
                         )}
                         onClick={(e) => {
@@ -383,53 +384,57 @@ export default function PlaylistPage() {
                           handlePlayTrack(track, tracks);
                         }}
                       >
-                        <Play className="w-3 h-3 fill-white" />
+                        <Play className="w-2 h-2 sm:w-3 sm:h-3 fill-white" />
                       </Button>
                     </div>
                   </div>
                    
-                  <div className="col-span-6 flex items-center gap-3 min-w-0">
+                  {/* Track Info */}
+                  <div className="col-span-6 sm:col-span-6 flex items-center gap-2 sm:gap-3 min-w-0">
                     <img
                       src={track.album_image || track.image || `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=50&h=50`}
                       alt={track.album_name}
-                      className="w-10 h-10 rounded object-cover"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
                     />
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className={cn(
-                        "font-medium text-sm truncate",
+                        "font-medium text-xs sm:text-sm truncate leading-tight",
                         isCurrentTrack ? "text-spotify-green" : "text-white"
                       )}>
                         {track.name}
                       </p>
-                      <p className="text-spotify-light-gray text-xs truncate">
+                      <p className="text-spotify-light-gray text-xs truncate leading-tight">
                         {track.artist_name}
                       </p>
                     </div>
                   </div>
                    
-                  <div className="col-span-3 flex items-center">
+                  {/* Album - Hidden on mobile */}
+                  <div className="col-span-3 hidden sm:flex items-center">
                     <p className="text-spotify-light-gray text-sm truncate">
                       {track.album_name}
                     </p>
                   </div>
                    
-                  <div className="col-span-1 flex items-center">
+                  {/* Duration - Hidden on mobile */}
+                  <div className="col-span-1 hidden sm:flex items-center">
                     <p className="text-spotify-light-gray text-sm">
                       {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
                     </p>
                   </div>
                    
-                  <div className="col-span-1 flex items-center justify-end">
+                  {/* Actions */}
+                  <div className="col-span-1 sm:col-span-1 flex items-center justify-end">
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="w-6 h-6 text-spotify-light-gray hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="w-5 h-5 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRemoveTrack(track.id);
                       }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
                 </div>
@@ -438,7 +443,7 @@ export default function PlaylistPage() {
           </div>
         </div>
       ) : (
-        <div className="text-center py-12">
+        <div className="text-center py-8 sm:py-12">
           <p className="text-spotify-light-gray">No tracks in this playlist yet</p>
           <p className="text-spotify-light-gray text-sm mt-2">Add some songs to get started</p>
           <Button
