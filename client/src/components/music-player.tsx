@@ -178,21 +178,6 @@ export function MusicPlayer() {
                 {displayTrack.artist_name}
               </p>
             </div>
-            {currentTrack && (
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-spotify-light-gray hover:text-spotify-green transition-colors sm:hidden"
-                onClick={handleFavoriteToggle}
-              >
-                <Heart
-                  className={cn(
-                    "w-4 h-4",
-                    isFavorite ? "fill-spotify-green text-spotify-green" : ""
-                  )}
-                />
-              </Button>
-            )}
           </div>
 
           {/* Center Section - Player Controls */}

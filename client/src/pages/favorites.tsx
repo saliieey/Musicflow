@@ -9,7 +9,7 @@ export default function Favorites() {
   const [userId] = useLocalStorage("userId", "guest");
   const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
 
-  const { data: favorites = [], isLoading } = useQuery({
+  const { data: favorites = [], isLoading, error } = useQuery({
     queryKey: ["/api/favorites", userId],
     enabled: !!userId,
   });
@@ -19,6 +19,18 @@ export default function Favorites() {
   const handlePlayTrack = (track: JamendoTrack, queue?: JamendoTrack[]) => {
     playTrack(track, queue || tracks);
   };
+
+  if (error) {
+    return (
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+        <div className="text-center py-8 sm:py-12">
+          <Heart className="w-12 h-12 sm:w-16 sm:h-16 text-red-500 mx-auto mb-4" />
+          <p className="text-red-500 font-semibold">Failed to load favorites</p>
+          <p className="text-spotify-light-gray text-sm mt-2">Please try refreshing the page</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">

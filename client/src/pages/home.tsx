@@ -65,7 +65,7 @@ export default function Home() {
     <div className="p-3 sm:p-4 md:p-6 space-y-6 md:space-y-8">
       {/* Header */}
       <header className="bg-black/20 backdrop-blur-md border-b border-spotify-dark-gray/30 -mx-3 sm:-mx-4 md:-mx-6 -mt-3 sm:-mt-4 md:-mt-6 px-3 sm:px-4 md:px-6 py-4 md:py-6">
-        <div className="flex items-center justify-center sm:justify-end">
+        <div className="flex items-center justify-end">
           {/* User Profile */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">

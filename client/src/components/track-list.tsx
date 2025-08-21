@@ -7,7 +7,7 @@ import { JamendoTrack } from "@/types/music";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 interface TrackListProps {
@@ -31,30 +31,61 @@ export function TrackList({
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Fetch user favorites to check status
+  const { data: favorites = [] } = useQuery({
+    queryKey: ["/api/favorites", userId],
+    enabled: !!userId,
+  });
+
+  console.log('TrackList - Favorites data:', favorites);
+  console.log('TrackList - User ID:', userId);
+
   const handleFavoriteToggle = async (track: JamendoTrack) => {
     try {
-      const isFavorite = await apiRequest("GET", `/api/favorites/check?trackId=${track.id}&userId=${userId}`);
+      // Check if track is currently favorited
+      const isCurrentlyFavorite = (favorites as any[]).some((fav: any) => fav.trackId === track.id);
       
-      if (isFavorite.exists) {
-        await apiRequest("DELETE", `/api/favorites/${track.id}?userId=${userId}`);
+      console.log('Toggling favorite for track:', track.name, 'Currently favorite:', isCurrentlyFavorite);
+      
+      if (isCurrentlyFavorite) {
+        // Remove from favorites
+        console.log('Removing from favorites...');
+        const response = await apiRequest("DELETE", `/api/favorites/${track.id}?userId=${userId}`);
+        console.log('Remove response:', response);
         toast({
           title: "Removed from favorites",
           description: `${track.name} has been removed from your liked songs`,
         });
       } else {
-        await apiRequest("POST", "/api/favorites", {
-          trackId: track.id,
+        // Add to favorites
+        console.log('Adding to favorites...');
+        const response = await apiRequest("POST", "/api/favorites", {
           userId,
-          trackData: track,
+          trackId: track.id,
+          trackData: {
+            id: track.id,
+            name: track.name,
+            artist_name: track.artist_name,
+            album_name: track.album_name,
+            album_image: track.album_image,
+            audio: track.audio,
+            duration: track.duration,
+          },
         });
+        console.log('Add response:', response);
         toast({
           title: "Added to favorites",
           description: `${track.name} has been added to your liked songs`,
         });
       }
       
-      queryClient.invalidateQueries({ queryKey: ["/api/favorites"] });
+      // Invalidate favorites queries to refresh the UI
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/favorites", userId],
+        exact: false 
+      });
     } catch (error) {
+      console.error('Favorite toggle error:', error);
       toast({
         title: "Error",
         description: "Failed to update favorites. Please try again.",
@@ -78,16 +109,16 @@ export function TrackList({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1 pr-0">
       {showHeader && (
-        <div className="grid grid-cols-12 gap-2 sm:gap-4 px-2 sm:px-4 py-2 text-spotify-light-gray text-xs sm:text-sm font-medium border-b border-spotify-dark-gray/30">
-          <div className="col-span-1 text-center">#</div>
-          <div className="col-span-6 sm:col-span-6 text-left">Title</div>
-          <div className="col-span-3 hidden sm:block text-left">Album</div>
-          <div className="col-span-1 hidden sm:block text-center">
+        <div className="relative grid grid-cols-12 gap-3 sm:gap-4 pl-4 sm:pl-6 pr-0 py-4 sm:py-5 text-spotify-light-gray text-xs sm:text-sm font-medium border-b border-spotify-dark-gray/30 bg-spotify-dark-gray/20 rounded-t-lg">
+          <div className="col-span-1 text-center font-semibold">#</div>
+          <div className="col-span-7 sm:col-span-6 text-left font-semibold">Title</div>
+          <div className="col-span-3 hidden sm:block text-left font-semibold">Album</div>
+          <div className="col-span-1 hidden sm:block text-center font-semibold">
             <Clock className="w-4 h-4" />
           </div>
-          <div className="col-span-1 sm:col-span-1 text-center"></div>
+          <div className="absolute right-4 sm:right-6 top-1/2 transform -translate-y-1/2 text-center font-semibold -translate-x-1/2">Actions</div>
         </div>
       )}
       
@@ -98,17 +129,17 @@ export function TrackList({
           <div
             key={track.id}
             className={cn(
-              "grid grid-cols-12 gap-2 sm:gap-4 px-2 sm:px-4 py-2 rounded-md transition-colors cursor-pointer group",
-              "hover:bg-spotify-gray/30",
-              isCurrentTrack && "bg-spotify-gray/50"
+              "relative grid grid-cols-12 gap-3 sm:gap-4 pl-4 sm:pl-6 pr-0 py-4 sm:py-5 rounded-lg transition-all duration-200 cursor-pointer group",
+              "hover:bg-spotify-gray/30 hover:scale-[1.01]",
+              isCurrentTrack && "bg-spotify-gray/50 ring-1 ring-spotify-green/30"
             )}
             onClick={() => onPlay(track, tracks)}
           >
             {/* Track Number / Play Button */}
             <div className="col-span-1 flex items-center justify-center">
-              <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
+              <div className="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
                 <span className={cn(
-                  "text-spotify-light-gray text-xs sm:text-sm group-hover:opacity-0 transition-opacity text-center",
+                  "text-spotify-light-gray text-sm sm:text-base group-hover:opacity-0 transition-opacity text-center font-semibold",
                   isCurrentTrack && isPlaying && "opacity-0"
                 )}>
                   {index + 1}
@@ -117,7 +148,7 @@ export function TrackList({
                   size="icon"
                   variant="ghost"
                   className={cn(
-                    "absolute inset-0 w-6 h-6 sm:w-8 sm:h-8 opacity-0 group-hover:opacity-100 transition-opacity",
+                    "absolute inset-0 w-8 h-8 sm:w-10 sm:h-10 opacity-0 group-hover:opacity-100 transition-opacity bg-spotify-green/20 hover:bg-spotify-green/30",
                     isCurrentTrack && isPlaying && "opacity-100"
                   )}
                   onClick={(e) => {
@@ -125,26 +156,26 @@ export function TrackList({
                     onPlay(track, tracks);
                   }}
                 >
-                  <Play className="w-2 h-2 sm:w-3 sm:h-3 fill-white" />
+                  <Play className="w-3 h-3 sm:w-4 sm:h-4 fill-white" />
                 </Button>
               </div>
             </div>
             
             {/* Track Info */}
-            <div className="col-span-6 sm:col-span-6 flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="col-span-7 sm:col-span-6 flex items-center gap-3 sm:gap-4 min-w-0">
               <img
                 src={track.album_image || track.image || `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=50&h=50`}
                 alt={track.album_name}
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded object-cover flex-shrink-0"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover flex-shrink-0 shadow-md"
               />
               <div className="min-w-0 flex-1">
                 <p className={cn(
-                  "font-medium text-xs sm:text-sm truncate leading-tight",
+                  "font-semibold text-sm sm:text-base truncate leading-tight",
                   isCurrentTrack ? "text-spotify-green" : "text-white"
                 )}>
                   {track.name}
                 </p>
-                <p className="text-spotify-light-gray text-xs truncate leading-tight">
+                <p className="text-spotify-light-gray text-xs sm:text-sm truncate leading-tight mt-1">
                   {track.artist_name}
                 </p>
               </div>
@@ -164,55 +195,51 @@ export function TrackList({
               </p>
             </div>
             
-            {/* Actions */}
-            <div className="col-span-1 sm:col-span-1 flex items-center justify-end">
-              {/* Mobile: Always show controls, Desktop: Show on hover */}
-              <div className={cn(
-                "flex items-center gap-1 sm:gap-2 transition-opacity",
-                "sm:opacity-0 sm:group-hover:opacity-100" // Hidden on desktop until hover, always visible on mobile
-              )}>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="w-5 h-5 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-white"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleFavoriteToggle(track);
-                  }}
-                >
-                  <Heart
-                    className={cn(
-                      "w-3 h-3 sm:w-4 sm:h-4",
-                      // Check if track is in favorites (you might need to implement this)
-                      false ? "fill-spotify-green text-spotify-green" : ""
-                    )}
-                  />
-                </Button>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="w-5 h-5 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-white"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <MoreHorizontal className="w-3 h-3 sm:w-4 sm:h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={() => onPlay(track, tracks)}>
-                      Play
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleFavoriteToggle(track)}>
-                      Add to Favorites
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      Add to Playlist
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+            {/* Actions - Positioned with same margin as track numbers */}
+            <div className="absolute right-4 sm:right-6 top-1/2 transform -translate-y-1/2 flex items-center gap-1 sm:gap-2 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="w-8 h-8 sm:w-7 sm:h-7 text-spotify-light-gray hover:text-white touch-manipulation hover:bg-spotify-dark-gray/50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFavoriteToggle(track);
+                }}
+              >
+                <Heart
+                  className={cn(
+                    "w-4 h-4 sm:w-4 sm:h-4",
+                    // Check if track is in favorites
+                    (favorites as any[]).some((fav: any) => fav.trackId === track.id) 
+                      ? "fill-spotify-green text-spotify-green" 
+                      : ""
+                  )}
+                />
+              </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="w-8 h-8 sm:w-7 sm:h-7 text-spotify-light-gray hover:text-white touch-manipulation hover:bg-spotify-dark-gray/50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreHorizontal className="w-4 h-4 sm:w-4 sm:h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-spotify-gray border-spotify-dark-gray">
+                  <DropdownMenuItem onClick={() => onPlay(track, tracks)} className="text-white hover:bg-spotify-dark-gray">
+                    Play
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleFavoriteToggle(track)} className="text-white hover:bg-spotify-dark-gray">
+                    Add to Favorites
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-white hover:bg-spotify-dark-gray">
+                    Add to Playlist
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         );

@@ -53,27 +53,17 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
         },
       });
     },
-    onSuccess: (response) => {
+    onSuccess: () => {
       // Invalidate all favorites queries for this user
       queryClient.invalidateQueries({ 
         queryKey: ["/api/favorites", userId],
         exact: false 
       });
       
-      // Check if the song was already in favorites
-      if (response.status === 200) {
-        // Song was already in favorites
-        toast({
-          title: "Already in favorites",
-          description: `${track.name} is already in your favorites`,
-        });
-      } else {
-        // Song was added to favorites
-        toast({
-          title: "Added to favorites",
-          description: `${track.name} by ${track.artist_name}`,
-        });
-      }
+      toast({
+        title: "Added to favorites",
+        description: `${track.name} by ${track.artist_name}`,
+      });
     },
     onError: () => {
       toast({
@@ -86,7 +76,7 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
 
   const removeFromFavoritesMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("DELETE", `/api/favorites/${track.id}?userId=${userId}`, {});
+      return apiRequest("DELETE", `/api/favorites/${track.id}?userId=${userId}`);
     },
     onSuccess: () => {
       // Invalidate all favorites queries for this user
@@ -205,13 +195,13 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
 
         {/* Mobile: Always show controls, Desktop: Show on hover */}
         <div className={cn(
-          "flex items-center justify-between mt-2 transition-opacity",
+          "flex items-center justify-between mt-3 sm:mt-2 transition-opacity",
           "sm:opacity-0 sm:group-hover:opacity-100" // Hidden on desktop until hover, always visible on mobile
         )}>
           <Button
             size="icon"
             variant="ghost"
-            className="w-6 h-6 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-white"
+            className="w-7 h-7 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-white touch-manipulation"
             onClick={(e) => {
               e.stopPropagation();
               handleFavoriteToggle();
@@ -219,7 +209,7 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
           >
             <Heart
               className={cn(
-                "w-3 h-3 sm:w-4 sm:h-4",
+                "w-4 h-4 sm:w-4 sm:h-4",
                 isFavorite ? "fill-spotify-green text-spotify-green" : ""
               )}
             />
@@ -230,10 +220,10 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
               <Button
                 size="icon"
                 variant="ghost"
-                className="w-6 h-6 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-white"
+                className="w-7 h-7 sm:w-6 sm:h-6 text-spotify-light-gray hover:text-white touch-manipulation"
                 onClick={(e) => e.stopPropagation()}
               >
-                <MoreHorizontal className="w-3 h-3 sm:w-4 sm:h-4" />
+                <MoreHorizontal className="w-4 h-4 sm:w-4 sm:h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-spotify-gray border-spotify-dark-gray">

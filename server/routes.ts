@@ -192,11 +192,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User ID is required" });
       }
 
+      console.log('Adding favorite for user:', userId, 'track:', req.body.trackId);
       const validatedData = insertFavoriteSchema.parse(req.body);
       
       // Check if already exists
       const existingFavorite = await storage.isFavorite(userId, validatedData.trackId);
       if (existingFavorite) {
+        console.log('Track already in favorites for user:', userId);
         // Return success but indicate it was already favorited
         return res.status(200).json({ 
           message: "Track already in favorites",
@@ -205,9 +207,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const favorite = await storage.addFavorite(userId, validatedData);
+      console.log('Added favorite successfully:', favorite.id);
       
       res.status(201).json(favorite);
     } catch (error) {
+      console.error('Error adding favorite:', error);
       res.status(400).json({ error: "Invalid favorite data" });
     }
   });
@@ -221,21 +225,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User ID is required" });
       }
       
+      console.log('Removing favorite for user:', userId, 'track:', trackId);
+      
       // Check if favorite exists before trying to remove
       const exists = await storage.isFavorite(userId, trackId);
-      
       if (!exists) {
+        console.log('Favorite not found for user:', userId, 'track:', trackId);
         return res.status(404).json({ error: "Favorite not found" });
       }
       
       const removed = await storage.removeFavorite(userId, trackId);
       
       if (!removed) {
+        console.log('Failed to remove favorite for user:', userId, 'track:', trackId);
         return res.status(404).json({ error: "Favorite not found" });
       }
       
+      console.log('Removed favorite successfully for user:', userId, 'track:', trackId);
       res.status(204).send();
     } catch (error) {
+      console.error('Error removing favorite:', error);
       res.status(500).json({ error: "Failed to remove favorite" });
     }
   });
