@@ -55,15 +55,15 @@ export function Sidebar() {
     return (
       <>
         {/* Mobile Menu Button - Fixed positioning with proper z-index */}
-        <div className="lg:hidden fixed top-4 left-4 z-[9999]">
+        <div className="lg:hidden fixed top-3 left-3 z-[9999]">
           <Button
             id="mobile-menu-button"
             size="icon"
             variant="ghost"
-            className="w-12 h-12 bg-spotify-dark-gray/95 border border-spotify-dark-gray/50 text-white hover:bg-spotify-dark-gray hover:scale-105 transition-all duration-200 shadow-lg"
+            className="w-10 h-10 bg-spotify-dark-gray/95 border border-spotify-dark-gray/50 text-white hover:bg-spotify-dark-gray hover:scale-105 transition-all duration-200 shadow-lg"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </Button>
         </div>
 

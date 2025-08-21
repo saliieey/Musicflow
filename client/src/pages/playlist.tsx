@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useRoute } from "wouter";
-import { ArrowLeft, Play, Heart, MoreHorizontal, Clock, Trash2, Edit, Share2, Plus, X } from "lucide-react";
+import { Play, Heart, MoreHorizontal, Clock, Trash2, Edit, Share2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TrackList } from "@/components/track-list";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
@@ -186,26 +186,17 @@ export default function PlaylistPage() {
 
   return (
     <div className="p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
-      {/* Header - Fixed positioning to avoid conflict with hamburger */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 md:mb-6 mt-16 sm:mt-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setLocation("/")}
-          className="text-spotify-light-gray hover:text-white self-start sm:self-auto w-10 h-10 sm:w-auto sm:h-auto"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-
+      {/* Header - Actions only, no back button on mobile */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6 mt-2 sm:mt-0">
         {/* Playlist Actions */}
         <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-end">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleSharePlaylist}
-            className="text-spotify-light-gray hover:text-white"
+            className="text-spotify-light-gray hover:text-white text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
-            <Share2 className="w-4 h-4 mr-2" />
+            <Share2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             Share
           </Button>
 
@@ -214,9 +205,9 @@ export default function PlaylistPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-spotify-light-gray hover:text-white"
+                className="text-spotify-light-gray hover:text-white text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
               >
-                <Edit className="w-4 h-4 mr-2" />
+                <Edit className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 Edit
               </Button>
             </DialogTrigger>
@@ -272,9 +263,9 @@ export default function PlaylistPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                className="text-red-500 hover:text-red-400 hover:bg-red-500/10 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 Delete
               </Button>
             </AlertDialogTrigger>
@@ -300,19 +291,19 @@ export default function PlaylistPage() {
       </div>
 
       {/* Playlist Header - Centered for mobile */}
-      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl p-4 sm:p-6 md:p-8 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl p-3 sm:p-6 md:p-8 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative z-10 text-center sm:text-left">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">{playlist.name}</h1>
+          <h1 className="text-xl sm:text-3xl md:text-4xl font-bold mb-2">{playlist.name}</h1>
           {playlist.description && (
-            <p className="text-base sm:text-lg opacity-90 mb-3 md:mb-4">{playlist.description}</p>
+            <p className="text-sm sm:text-lg opacity-90 mb-2 sm:mb-4">{playlist.description}</p>
           )}
-          <p className="text-base sm:text-lg opacity-90 mb-4 md:mb-6">
+          <p className="text-sm sm:text-lg opacity-90 mb-3 sm:mb-6">
             {tracks.length} {tracks.length === 1 ? 'song' : 'songs'}
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center sm:justify-start">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center sm:justify-start">
             <Button 
-              className="bg-white text-purple-600 px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors text-sm sm:text-base"
+              className="bg-white text-purple-600 px-4 sm:px-8 py-2 sm:py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors text-sm sm:text-base"
               onClick={() => tracks.length > 0 && handlePlayTrack(tracks[0], tracks)}
             >
               <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -321,7 +312,7 @@ export default function PlaylistPage() {
             
             <Button
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-purple-600 px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-colors text-sm sm:text-base"
+              className="border-white text-white hover:bg-white hover:text-purple-600 px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-colors text-sm sm:text-base"
               onClick={() => setLocation("/")}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -445,12 +436,12 @@ export default function PlaylistPage() {
           </div>
         </div>
       ) : (
-        <div className="text-center py-8 sm:py-12">
+        <div className="text-center py-6 sm:py-12">
           <p className="text-spotify-light-gray">No tracks in this playlist yet</p>
           <p className="text-spotify-light-gray text-sm mt-2">Add some songs to get started</p>
           <Button
             onClick={() => setLocation("/")}
-            className="mt-4"
+            className="mt-3 sm:mt-4"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Songs
