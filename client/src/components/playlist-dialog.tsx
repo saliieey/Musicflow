@@ -62,14 +62,14 @@ export function PlaylistDialog({ open, onOpenChange }: PlaylistDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-spotify-gray border-spotify-dark-gray">
-        <DialogHeader>
-          <DialogTitle className="text-white">Create New Playlist</DialogTitle>
+      <DialogContent className="w-[90vw] max-w-[400px] mx-auto bg-spotify-gray border-spotify-dark-gray rounded-lg p-4 sm:p-6">
+        <DialogHeader className="mb-4">
+          <DialogTitle className="text-white text-lg sm:text-xl font-semibold">Create New Playlist</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-spotify-light-gray">
+            <Label htmlFor="name" className="text-spotify-light-gray text-sm font-medium">
               Name
             </Label>
             <Input
@@ -77,13 +77,13 @@ export function PlaylistDialog({ open, onOpenChange }: PlaylistDialogProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="My Playlist #1"
-              className="bg-spotify-dark-gray border-spotify-dark-gray text-white placeholder-spotify-light-gray"
+              className="bg-spotify-dark-gray border-spotify-dark-gray text-white placeholder-spotify-light-gray h-10 sm:h-11 text-sm sm:text-base"
               required
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-spotify-light-gray">
+            <Label htmlFor="description" className="text-spotify-light-gray text-sm font-medium">
               Description (optional)
             </Label>
             <Textarea
@@ -91,24 +91,24 @@ export function PlaylistDialog({ open, onOpenChange }: PlaylistDialogProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add a description..."
-              className="bg-spotify-dark-gray border-spotify-dark-gray text-white placeholder-spotify-light-gray"
+              className="bg-spotify-dark-gray border-spotify-dark-gray text-white placeholder-spotify-light-gray text-sm sm:text-base resize-none"
               rows={3}
             />
           </div>
           
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-2 pt-2">
             <Button
               type="button"
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="text-spotify-light-gray hover:text-white"
+              className="text-spotify-light-gray hover:text-white h-10 sm:h-9 order-2 sm:order-1"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={!name.trim() || createPlaylistMutation.isPending}
-              className="bg-spotify-green hover:bg-spotify-green/90 text-black"
+              className="bg-spotify-green hover:bg-spotify-green/90 text-black h-10 sm:h-9 order-1 sm:order-2 flex-1 sm:flex-none"
             >
               {createPlaylistMutation.isPending ? "Creating..." : "Create"}
             </Button>

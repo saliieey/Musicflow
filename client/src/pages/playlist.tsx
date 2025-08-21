@@ -220,44 +220,46 @@ export default function PlaylistPage() {
                 Edit
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit Playlist</DialogTitle>
-                <DialogDescription>
+            <DialogContent className="w-[90vw] max-w-[400px] mx-auto bg-spotify-gray border-spotify-dark-gray rounded-lg p-4 sm:p-6">
+              <DialogHeader className="mb-4">
+                <DialogTitle className="text-white text-lg sm:text-xl font-semibold">Edit Playlist</DialogTitle>
+                <DialogDescription className="text-spotify-light-gray text-sm">
                   Update your playlist name and description.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <label className="text-sm font-medium">Name</label>
+                  <label className="text-sm font-medium text-spotify-light-gray">Name</label>
                   <Input
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     placeholder="Playlist name"
-                    className="mt-1"
+                    className="mt-2 bg-spotify-dark-gray border-spotify-dark-gray text-white placeholder-spotify-light-gray h-10 sm:h-11"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Description</label>
+                  <label className="text-sm font-medium text-spotify-light-gray">Description</label>
                   <Textarea
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
                     placeholder="Playlist description (optional)"
-                    className="mt-1"
+                    className="mt-2 bg-spotify-dark-gray border-spotify-dark-gray text-white placeholder-spotify-light-gray resize-none"
                     rows={3}
                   />
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4">
                 <Button
                   variant="outline"
                   onClick={() => setIsEditOpen(false)}
+                  className="h-10 sm:h-9 order-2 sm:order-1 flex-1 sm:flex-none"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={() => editPlaylistMutation.mutate()}
                   disabled={!editName.trim()}
+                  className="h-10 sm:h-9 order-1 sm:order-2 flex-1 sm:flex-none bg-spotify-green hover:bg-spotify-green/90 text-black"
                 >
                   Save Changes
                 </Button>
