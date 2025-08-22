@@ -1,10 +1,90 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPlaylistSchema, insertFavoriteSchema } from "@shared/schema";
+import { insertPlaylistSchema, insertFavoriteSchema, insertUserSchema } from "@shared/schema";
 import { config } from "../config.js";
+import bcrypt from "bcryptjs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Authentication API
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { username, email, password, confirmPassword } = req.body;
+      
+      // Validation
+      if (!username || !email || !password || !confirmPassword) {
+        return res.status(400).json({ error: "All fields are required" });
+      }
+      
+      if (password !== confirmPassword) {
+        return res.status(400).json({ error: "Passwords do not match" });
+      }
+      
+      if (password.length < 8) {
+        return res.status(400).json({ error: "Password must be at least 8 characters long" });
+      }
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+      
+      // Hash password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      
+      // Create user
+      const user = await storage.createUser({
+        username,
+        password: hashedPassword,
+      });
+      
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json({ 
+        user: userWithoutPassword,
+        message: "User created successfully" 
+      });
+    } catch (error) {
+      console.error('Signup error:', error);
+      res.status(500).json({ error: "Failed to create user" });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      // Validation
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+      
+      // Find user
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
+      
+      // Check password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
+      
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ 
+        user: userWithoutPassword,
+        message: "Login successful" 
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: "Failed to authenticate user" });
+    }
+  });
+
   // Playlists API
   app.get("/api/playlists", async (req, res) => {
     try {

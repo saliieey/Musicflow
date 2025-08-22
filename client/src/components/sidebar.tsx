@@ -1,8 +1,9 @@
 import { Link, useLocation } from "wouter";
-import { Home, Search, Heart, TrendingUp, Plus, List, Menu, X } from "lucide-react";
+import { Home, Search, Heart, TrendingUp, Plus, List, Menu, X, LogIn, LogOut, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useAuth } from "@/contexts/auth-context";
 import { useState, useEffect } from "react";
 import { PlaylistDialog } from "@/components/playlist-dialog";
 import { useMobile } from "@/hooks/use-mobile";
@@ -15,8 +16,9 @@ const navigation = [
 ];
 
 export function Sidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [userId] = useLocalStorage("userId", "guest");
+  const { user, isAuthenticated, logout } = useAuth();
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useMobile();
@@ -158,6 +160,59 @@ export function Sidebar() {
                 Create Playlist
               </Button>
             </div>
+
+            {/* Authentication Section */}
+            <div className="mt-8 border-t border-spotify-dark-gray/30 pt-6">
+              {isAuthenticated && user ? (
+                <div className="px-3 mb-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                      {user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-white font-medium text-sm">{user.username}</p>
+                      <p className="text-spotify-light-gray text-xs">Signed in</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-3 px-3 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors rounded-md w-full justify-start"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Sign Out
+                  </Button>
+                </div>
+              ) : (
+                <div className="px-3 space-y-2">
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setLocation("/login");
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-3 px-3 py-3 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray w-full justify-start"
+                  >
+                    <LogIn className="w-5 h-5" />
+                    Sign In
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setLocation("/signup");
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-3 px-3 py-3 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray w-full justify-start"
+                  >
+                    <User className="w-5 h-5" />
+                    Create Account
+                  </Button>
+                </div>
+              )}
+            </div>
           </nav>
         </div>
 
@@ -239,6 +294,50 @@ export function Sidebar() {
               <Plus className="w-5 h-5" />
               Create Playlist
             </Button>
+          </div>
+
+          {/* Authentication Section */}
+          <div className="mt-8 border-t border-spotify-dark-gray/30 pt-6">
+            {isAuthenticated && user ? (
+              <div className="px-3 mb-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    {user.username.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-white font-medium text-sm">{user.username}</p>
+                    <p className="text-spotify-light-gray text-xs">Signed in</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  onClick={logout}
+                  className="flex items-center gap-3 px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors rounded-md w-full justify-start"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <div className="px-3 space-y-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => setLocation("/login")}
+                  className="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray w-full justify-start"
+                >
+                  <LogIn className="w-5 h-5" />
+                  Sign In
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setLocation("/signup")}
+                  className="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray w-full justify-start"
+                >
+                    <User className="w-5 h-5" />
+                    Create Account
+                  </Button>
+              </div>
+            )}
           </div>
         </nav>
       </div>

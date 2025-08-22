@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search as SearchIcon } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { TrackList } from "@/components/track-list";
 import { ApiError } from "@/components/api-error";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
@@ -32,12 +31,16 @@ export default function Search() {
         <div className="flex justify-center sm:justify-start">
           <div className="relative max-w-md">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-spotify-light-gray w-4 h-4" />
-            <Input
+            <input
               type="text"
-              placeholder="Search songs, artists, or albums..."
+              placeholder="Search music, artists..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-spotify-dark-gray/80 backdrop-blur-sm border-spotify-dark-gray text-white placeholder-spotify-light-gray focus:ring-spotify-green focus:border-transparent"
+              className="pl-10 w-full h-10 rounded-md border border-spotify-dark-gray bg-white/90 backdrop-blur-sm text-black placeholder:text-black/60 focus:ring-2 focus:ring-spotify-green/20 focus:border-transparent focus:outline-none"
+              style={{ 
+                color: 'black !important',
+                caretColor: 'black'
+              }}
             />
           </div>
         </div>

@@ -4,6 +4,7 @@ import { TrackCard } from "@/components/track-card";
 import { ApiError } from "@/components/api-error";
 import { Button } from "@/components/ui/button";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
+import { useAuth } from "@/contexts/auth-context";
 import { JamendoTrack } from "@/types/music";
 import { useState } from "react";
 
@@ -16,6 +17,7 @@ const genres = [
 
 export default function Home() {
   const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
+  const { user, isAuthenticated } = useAuth();
   const [showAllTrending, setShowAllTrending] = useState(false);
   const [showAllPopular, setShowAllPopular] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
@@ -68,10 +70,29 @@ export default function Home() {
         <div className="flex items-center justify-end">
           {/* User Profile */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
-              G
-            </div>
-            <span className="text-sm font-medium">Guest User</span>
+            {isAuthenticated && user ? (
+              <>
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  {user.username.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm font-medium">{user.username}</span>
+              </>
+            ) : (
+              <>
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+                  G
+                </div>
+                <span className="text-sm font-medium">Guest User</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.location.href = "/login"}
+                  className="ml-2 text-spotify-light-gray hover:text-white transition-all duration-200"
+                >
+                  Sign In
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>

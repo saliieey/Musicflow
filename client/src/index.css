@@ -98,6 +98,16 @@
   --radius: 1.3rem;
 }
 
+/* Ensure search input text is always visible */
+input[type="text"], input[type="search"] {
+  color: black !important;
+}
+
+input[type="text"]::placeholder, input[type="search"]::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
+  opacity: 1 !important;
+}
+
 /* Music Player Progress Bar Styling */
 .music-player-progress {
   background-color: hsl(0 0% 20%) !important;
