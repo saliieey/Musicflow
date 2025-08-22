@@ -47,14 +47,14 @@ export const getQueryFn: <T>(options: {
       // Handle favorites list endpoint: ["/api/favorites", userId]
       const userId = queryKey[1];
       url = `/api/favorites?userId=${userId}`;
-    } else if (queryKey[0] === "/api/playlists" && queryKey[1] && typeof queryKey[1] === "string" && queryKey[1].includes("-")) {
-      // Handle individual playlist endpoint: ["/api/playlists", playlistId] (UUID contains hyphens)
+    } else if (queryKey[0] === "/api/playlists" && queryKey[1] === "user" && queryKey[2]) {
+      // Handle ["/api/playlists", "user", userId] - fetch user's playlists
+      const userId = queryKey[2];
+      url = `/api/playlists?userId=${userId}`;
+    } else if (queryKey[0] === "/api/playlists" && queryKey[1] && typeof queryKey[1] === "string") {
+      // Handle ["/api/playlists", playlistId] - fetch individual playlist
       const playlistId = queryKey[1];
       url = `/api/playlists/${playlistId}`;
-    } else if (queryKey[0] === "/api/playlists" && queryKey[1]) {
-      // Handle playlists list endpoint: ["/api/playlists", userId]
-      const userId = queryKey[1];
-      url = `/api/playlists?userId=${userId}`;
     } else {
       // Fallback to joining with "/"
       url = queryKey.join("/") as string;

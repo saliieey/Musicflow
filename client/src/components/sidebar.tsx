@@ -17,16 +17,26 @@ const navigation = [
 
 export function Sidebar() {
   const [location, setLocation] = useLocation();
-  const [userId] = useLocalStorage("userId", "guest");
+  const [localUserId] = useLocalStorage("userId", "guest");
   const { user, isAuthenticated, logout } = useAuth();
   const [showPlaylistDialog, setShowPlaylistDialog] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useMobile();
 
-  const { data: playlists = [] } = useQuery({
-    queryKey: ["/api/playlists", userId],
-    enabled: !!userId,
+  // Use authenticated user ID if available, otherwise fall back to local storage
+  const userId = isAuthenticated && user ? user.id : localUserId;
+
+  const { data: playlists = [], isLoading, error } = useQuery({
+    queryKey: ["/api/playlists", "user", userId],
+    enabled: !!userId && userId !== "guest",
   });
+
+  // Debug logging
+  console.log("Sidebar - userId:", userId);
+  console.log("Sidebar - playlists:", playlists);
+  console.log("Sidebar - isLoading:", isLoading);
+  console.log("Sidebar - error:", error);
+  console.log("Sidebar - queryKey:", ["/api/playlists", "user", userId]);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -62,7 +72,7 @@ export function Sidebar() {
             id="mobile-menu-button"
             size="icon"
             variant="ghost"
-            className="w-10 h-10 bg-spotify-dark-gray/95 border border-spotify-dark-gray/50 text-white hover:bg-spotify-dark-gray hover:scale-105 transition-all duration-200 shadow-lg"
+            className="w-10 h-10 bg-transparent text-white hover:bg-spotify-dark-gray/20 hover:scale-105 transition-all duration-200"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

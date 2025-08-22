@@ -23,18 +23,35 @@ export function PlaylistDialog({ open, onOpenChange }: PlaylistDialogProps) {
 
   const createPlaylistMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", "/api/playlists", {
+      console.log("Creating playlist with userId:", userId);
+      const result = await apiRequest("POST", "/api/playlists", {
         userId,
         name,
         description,
         tracks: [],
       });
+      console.log("Playlist creation result:", result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Playlist created successfully:", data);
+      
       // Invalidate ALL playlist queries to ensure proper sync
       queryClient.invalidateQueries({ 
         queryKey: ["/api/playlists"],
         exact: false 
+      });
+      
+      // Also invalidate the specific query key used by the sidebar
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/playlists", "user", userId],
+        exact: true 
+      });
+      
+      // Force refetch the sidebar playlists
+      queryClient.refetchQueries({ 
+        queryKey: ["/api/playlists", "user", userId],
+        exact: true 
       });
       
       toast({
@@ -45,7 +62,8 @@ export function PlaylistDialog({ open, onOpenChange }: PlaylistDialogProps) {
       setDescription("");
       onOpenChange(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Playlist creation error:", error);
       toast({
         title: "Failed to create playlist",
         description: "Please try again later.",
