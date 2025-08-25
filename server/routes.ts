@@ -1,9 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { PostgresStorage } from "./postgres-storage.js";
 import { insertPlaylistSchema, insertFavoriteSchema, insertUserSchema } from "@shared/schema";
 import { config } from "../config.js";
 import bcrypt from "bcryptjs";
+
+// Create storage instance
+const storage = new PostgresStorage();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication API

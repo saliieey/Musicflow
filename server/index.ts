@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { config } from "../config.js";
+import { testConnection } from "./database.js";
 
 const app = express();
 app.use(express.json());
@@ -38,6 +39,17 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Test database connection first
+  log("🔌 Testing database connection...");
+  const dbConnected = await testConnection();
+  
+  if (!dbConnected) {
+    log("⚠️  Warning: Database connection failed. App will continue with limited functionality.");
+    log("💡 Make sure PostgreSQL is running and credentials are correct in config.js");
+  } else {
+    log("✅ Database connected successfully!");
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -67,6 +79,13 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`🚀 MusicFlow server running on port ${port}`);
+    log(`🌐 Frontend: http://localhost:${port}`);
+    log(`🔌 API: http://localhost:${port}/api`);
+    if (dbConnected) {
+      log(`💾 Database: Connected to PostgreSQL`);
+    } else {
+      log(`⚠️  Database: Not connected - using fallback storage`);
+    }
   });
 })();

@@ -30,8 +30,8 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
 
   // Fetch playlists for add-to-playlist menu
   const { data: playlists = [] } = useQuery({
-    queryKey: ["/api/playlists", userId],
-    enabled: !!userId,
+    queryKey: ["/api/playlists", "user", userId],
+    enabled: !!userId && userId !== "guest",
   });
 
   // Check if this track is in the favorites list
