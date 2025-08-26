@@ -1,0 +1,40 @@
+MUSICFLOW - Full-Stack Music Streaming Web Application
+
+Project Description:
+Developed a Spotify-inspired music streaming platform using modern web technologies, featuring real-time audio playback, user authentication, and playlist management. Implemented a hybrid data architecture supporting both guest users (local storage) and registered users (PostgreSQL database).
+
+Technical Stack:
+• Frontend: React 18, TypeScript, Tailwind CSS, Radix UI components
+• Backend: Node.js, Express.js, RESTful API architecture
+• Database: PostgreSQL with Drizzle ORM, hybrid local/database storage
+• State Management: React Query, Context API, custom hooks
+• Audio: Custom audio player with global state management
+• Authentication: JWT-less session management with bcrypt password hashing
+• External APIs: Jamendo Music API integration for music streaming
+
+Key Features Implemented:
+• Real-time music streaming with custom audio player controls (play/pause, skip, volume, shuffle, repeat)
+• User authentication system with secure password hashing and session persistence
+• Dynamic playlist creation and management with real-time updates
+• Favorites system for tracks with persistent storage
+• Responsive design optimized for mobile and desktop
+• Search functionality with genre-based music discovery
+• Trending tracks and music recommendations
+• Guest user experience with local storage playlists
+• Database-driven user accounts with persistent data
+
+Technical Achievements:
+• Designed hybrid data architecture supporting both guest and authenticated users
+• Implemented custom audio player hook with global state management
+• Built responsive UI components using modern design patterns
+• Created secure authentication system without external dependencies
+• Optimized performance with React Query caching and efficient re-renders
+• Developed comprehensive error handling and user feedback systems
+
+Development Highlights:
+• Full-stack application with complete user experience flow
+• Modern React patterns including custom hooks and context providers
+• Responsive design with mobile-first approach
+• Real-time data synchronization across components
+• Professional-grade code structure with TypeScript type safety
+• Comprehensive state management for complex audio player functionality
