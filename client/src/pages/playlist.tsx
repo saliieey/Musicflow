@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { TrackList } from "@/components/track-list";
 import { useAudioPlayer } from "@/hooks/use-audio-player";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useAuth } from "@/contexts/auth-context";
 import { JamendoTrack } from "@/types/music";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +20,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 export default function PlaylistPage() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/playlist/:id");
-  const [userId] = useLocalStorage("userId", "guest");
+  const [localUserId] = useLocalStorage("userId", "guest");
+  const { user, isAuthenticated } = useAuth();
   const { playTrack, currentTrack, isPlaying } = useAudioPlayer();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -29,19 +31,57 @@ export default function PlaylistPage() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
 
+  // Use authenticated user ID if available, otherwise fall back to local storage
+  const userId = isAuthenticated && user ? user.id : localUserId;
+
   // Get playlist ID from URL params
   const playlistId = params?.id;
 
-  const { data: playlist, isLoading } = useQuery({
+  // Fetch playlist data based on user type
+  const { data: dbPlaylist, isLoading: dbLoading } = useQuery({
     queryKey: ["/api/playlists", playlistId],
-    enabled: !!playlistId,
+    enabled: !!playlistId && userId !== "guest" && isAuthenticated,
   });
 
-  const tracks: JamendoTrack[] = (playlist?.tracks as any[]) || [];
+  // Fetch guest playlist from local storage
+  const { data: guestPlaylist, isLoading: guestLoading } = useQuery({
+    queryKey: ["guestPlaylist", playlistId],
+    enabled: !!playlistId && userId === "guest",
+    queryFn: () => {
+      try {
+        const stored = localStorage.getItem('guestPlaylists');
+        if (!stored) return null;
+        
+        const playlists = JSON.parse(stored);
+        return playlists.find((p: any) => p.id === playlistId) || null;
+      } catch (error) {
+        console.error('Error reading guest playlist:', error);
+        return null;
+      }
+    },
+  });
+
+  // Combine playlist data based on user type
+  const playlist = userId === "guest" ? guestPlaylist : dbPlaylist;
+  const isLoading = userId === "guest" ? guestLoading : dbLoading;
+
+  // Type guard to ensure playlist has the required properties
+  const isValidPlaylist = (playlist: any): playlist is { 
+    id: string; 
+    name: string; 
+    description?: string; 
+    tracks: any[]; 
+    userId?: string; 
+    createdAt?: string; 
+  } => {
+    return playlist && typeof playlist === 'object' && 'id' in playlist && 'name' in playlist;
+  };
+
+  const tracks: JamendoTrack[] = (isValidPlaylist(playlist) ? playlist.tracks : []) || [];
 
   // Initialize edit form when playlist data loads
   useEffect(() => {
-    if (playlist) {
+    if (isValidPlaylist(playlist)) {
       setEditName(playlist.name || "");
       setEditDescription(playlist.description || "");
     }
@@ -54,16 +94,49 @@ export default function PlaylistPage() {
   // Edit playlist mutation
   const editPlaylistMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("PUT", `/api/playlists/${playlistId}`, {
-        name: editName,
-        description: editDescription,
-      });
+      if (userId === "guest") {
+        // For guest users, update in local storage
+        const existingPlaylists = JSON.parse(localStorage.getItem('guestPlaylists') || '[]');
+        const playlistIndex = existingPlaylists.findIndex((p: any) => p.id === playlistId);
+        
+        if (playlistIndex === -1) {
+          throw new Error('Playlist not found');
+        }
+        
+        existingPlaylists[playlistIndex] = {
+          ...existingPlaylists[playlistIndex],
+          name: editName,
+          description: editDescription,
+        };
+        
+        localStorage.setItem('guestPlaylists', JSON.stringify(existingPlaylists));
+        return { success: true };
+      } else {
+        // For registered users, update in database
+        return apiRequest("PUT", `/api/playlists/${playlistId}`, {
+          name: editName,
+          description: editDescription,
+        });
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/playlists"],
-        exact: false 
-      });
+      if (userId === "guest") {
+        // For guest users, invalidate the guest playlist query
+        queryClient.invalidateQueries({ 
+          queryKey: ["guestPlaylist", playlistId],
+          exact: true 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: ["guestPlaylists"],
+          exact: true 
+        });
+      } else {
+        // For registered users, invalidate database playlists
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/playlists"],
+          exact: false 
+        });
+      }
       
       toast({
         title: "Playlist updated",
@@ -83,13 +156,35 @@ export default function PlaylistPage() {
   // Delete playlist mutation
   const deletePlaylistMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("DELETE", `/api/playlists/${playlistId}?userId=${userId}`, {});
+      if (userId === "guest") {
+        // For guest users, delete from local storage
+        const existingPlaylists = JSON.parse(localStorage.getItem('guestPlaylists') || '[]');
+        const updatedPlaylists = existingPlaylists.filter((p: any) => p.id !== playlistId);
+        localStorage.setItem('guestPlaylists', JSON.stringify(updatedPlaylists));
+        return { success: true };
+      } else {
+        // For registered users, delete from database
+        return apiRequest("DELETE", `/api/playlists/${playlistId}?userId=${userId}`, {});
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/playlists"],
-        exact: false 
-      });
+      if (userId === "guest") {
+        // For guest users, invalidate guest playlists queries
+        queryClient.invalidateQueries({ 
+          queryKey: ["guestPlaylists"],
+          exact: true 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: ["guestPlaylist", playlistId],
+          exact: true 
+        });
+      } else {
+        // For registered users, invalidate database playlists
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/playlists"],
+          exact: false 
+        });
+      }
       
       toast({
         title: "Playlist deleted",
@@ -109,15 +204,31 @@ export default function PlaylistPage() {
   // Share playlist
   const handleSharePlaylist = async () => {
     try {
-      const shareInfo = await apiRequest("GET", `/api/playlists/${playlistId}/share`);
-      
-      // Copy playlist URL to clipboard
-      await navigator.clipboard.writeText(shareInfo.shareUrl);
-      
-      toast({
-        title: "Playlist link copied!",
-        description: "Share this link with your friends",
-      });
+      if (userId === "guest") {
+        // For guest users, create share info from local data
+        const shareInfo = {
+          shareUrl: `${window.location.origin}/playlist/${playlistId}`,
+        };
+        
+        // Copy playlist URL to clipboard
+        await navigator.clipboard.writeText(shareInfo.shareUrl);
+        
+        toast({
+          title: "Playlist link copied!",
+          description: "Share this link with your friends",
+        });
+      } else {
+        // For registered users, get share info from API
+        const shareInfo = await apiRequest("GET", `/api/playlists/${playlistId}/share`);
+        
+        // Copy playlist URL to clipboard
+        await navigator.clipboard.writeText(shareInfo.shareUrl);
+        
+        toast({
+          title: "Playlist link copied!",
+          description: "Share this link with your friends",
+        });
+      }
     } catch (error) {
       toast({
         title: "Failed to share playlist",
@@ -129,14 +240,44 @@ export default function PlaylistPage() {
 
   const removeTrackMutation = useMutation({
     mutationFn: async (trackId: string) => {
-      return apiRequest("DELETE", `/api/playlists/${playlistId}/tracks/${trackId}`, {});
+      if (userId === "guest") {
+        // For guest users, remove from local storage
+        const existingPlaylists = JSON.parse(localStorage.getItem('guestPlaylists') || '[]');
+        const playlistIndex = existingPlaylists.findIndex((p: any) => p.id === playlistId);
+        
+        if (playlistIndex === -1) {
+          throw new Error('Playlist not found');
+        }
+        
+        const playlist = existingPlaylists[playlistIndex];
+        playlist.tracks = playlist.tracks.filter((t: any) => t.id !== trackId);
+        existingPlaylists[playlistIndex] = playlist;
+        
+        localStorage.setItem('guestPlaylists', JSON.stringify(existingPlaylists));
+        return { success: true };
+      } else {
+        // For registered users, remove from database
+        return apiRequest("DELETE", `/api/playlists/${playlistId}/tracks/${trackId}`, {});
+      }
     },
     onSuccess: (_, trackId) => {
-      // Invalidate ALL playlist queries to ensure proper sync
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/playlists"],
-        exact: false 
-      });
+      if (userId === "guest") {
+        // For guest users, invalidate guest playlist queries
+        queryClient.invalidateQueries({ 
+          queryKey: ["guestPlaylist", playlistId],
+          exact: true 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: ["guestPlaylists"],
+          exact: true 
+        });
+      } else {
+        // For registered users, invalidate database playlists
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/playlists"],
+          exact: false 
+        });
+      }
       
       toast({
         title: "Track removed",
@@ -170,7 +311,7 @@ export default function PlaylistPage() {
     );
   }
 
-  if (!playlist) {
+  if (!playlist || !isValidPlaylist(playlist)) {
     return (
       <div className="p-3 sm:p-4 md:p-6 text-center">
         <p className="text-spotify-light-gray">Playlist not found</p>

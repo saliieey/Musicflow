@@ -26,17 +26,42 @@ export function Sidebar() {
   // Use authenticated user ID if available, otherwise fall back to local storage
   const userId = isAuthenticated && user ? user.id : localUserId;
 
-  const { data: playlists = [], isLoading, error } = useQuery({
+  // Fetch database playlists for registered users
+  const { data: dbPlaylists = [], isLoading: dbLoading, error: dbError } = useQuery({
     queryKey: ["/api/playlists", "user", userId],
-    enabled: !!userId && userId !== "guest",
+    enabled: !!userId && userId !== "guest" && isAuthenticated,
   });
+
+  // Fetch guest playlists from local storage
+  const { data: guestPlaylists = [], isLoading: guestLoading } = useQuery({
+    queryKey: ["guestPlaylists"],
+    enabled: userId === "guest",
+    queryFn: () => {
+      try {
+        const stored = localStorage.getItem('guestPlaylists');
+        return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+        console.error('Error reading guest playlists:', error);
+        return [];
+      }
+    },
+    // Refresh when local storage changes
+    refetchInterval: 1000,
+  });
+
+  // Combine playlists based on user type
+  const playlists = userId === "guest" ? guestPlaylists : dbPlaylists;
+  const isLoading = userId === "guest" ? guestLoading : dbLoading;
+  const error = userId === "guest" ? null : dbError;
 
   // Debug logging
   console.log("Sidebar - userId:", userId);
+  console.log("Sidebar - isAuthenticated:", isAuthenticated);
   console.log("Sidebar - playlists:", playlists);
   console.log("Sidebar - isLoading:", isLoading);
   console.log("Sidebar - error:", error);
-  console.log("Sidebar - queryKey:", ["/api/playlists", "user", userId]);
+  console.log("Sidebar - guestPlaylists:", guestPlaylists);
+  console.log("Sidebar - dbPlaylists:", dbPlaylists);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -190,7 +215,7 @@ export function Sidebar() {
                       logout();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center gap-3 px-3 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors rounded-md w-full justify-start"
+                    className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-2 pt-2"
                   >
                     <LogOut className="w-5 h-5" />
                     Sign Out

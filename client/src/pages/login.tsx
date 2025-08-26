@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Eye, EyeOff, Music, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
@@ -78,17 +77,14 @@ export default function LoginPage() {
               <Label htmlFor="username" className="text-white font-medium">
                 Username
               </Label>
-              <Input
+              <input
                 id="username"
                 type="text"
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
                 placeholder="Enter your username"
-                className={cn(
-                  "h-12 bg-spotify-dark-gray/50 border-spotify-dark-gray text-white placeholder-spotify-light-gray",
-                  "focus:border-spotify-green focus:ring-spotify-green/20",
-                  "transition-all duration-200"
-                )}
+                className="h-12 w-full rounded-md border border-spotify-dark-gray bg-white/90 text-black placeholder:text-black/60 px-4 py-3 focus:border-spotify-green focus:ring-2 focus:ring-spotify-green/20 focus:outline-none transition-all duration-200"
+                style={{ color: 'black' }}
                 required
               />
             </div>
@@ -99,17 +95,14 @@ export default function LoginPage() {
                 Password
               </Label>
               <div className="relative">
-                <Input
+                <input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={(e) => handleInputChange("password", e.target.value)}
                   placeholder="Enter your password"
-                  className={cn(
-                    "h-12 bg-spotify-dark-gray/50 border-spotify-dark-gray text-white placeholder-spotify-light-gray pr-12",
-                    "focus:border-spotify-green focus:ring-spotify-green/20",
-                    "transition-all duration-200"
-                  )}
+                  className="h-12 w-full rounded-md border border-spotify-dark-gray bg-white/90 text-black placeholder:text-black/60 px-4 py-3 pr-12 focus:border-spotify-green focus:ring-2 focus:ring-spotify-green/20 focus:outline-none transition-all duration-200"
+                  style={{ color: 'black' }}
                   required
                 />
                 <Button

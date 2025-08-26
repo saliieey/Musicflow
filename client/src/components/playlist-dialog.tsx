@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useAuth } from "@/contexts/auth-context";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,42 +18,67 @@ interface PlaylistDialogProps {
 export function PlaylistDialog({ open, onOpenChange }: PlaylistDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [userId] = useLocalStorage("userId", "guest");
+  const [localUserId] = useLocalStorage("userId", "guest");
+  const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Use authenticated user ID if available, otherwise fall back to local storage
+  const userId = isAuthenticated && user ? user.id : localUserId;
 
   const createPlaylistMutation = useMutation({
     mutationFn: async () => {
       console.log("Creating playlist with userId:", userId);
-      const result = await apiRequest("POST", "/api/playlists", {
-        userId,
-        name,
-        description,
-        tracks: [],
-      });
-      console.log("Playlist creation result:", result);
-      return result;
+      
+      if (userId === "guest") {
+        // For guest users, create a local playlist
+        const guestPlaylist = {
+          id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name,
+          description,
+          tracks: [],
+          createdAt: new Date().toISOString(),
+          isGuest: true
+        };
+        
+        // Store in local storage
+        const existingPlaylists = JSON.parse(localStorage.getItem('guestPlaylists') || '[]');
+        const updatedPlaylists = [...existingPlaylists, guestPlaylist];
+        localStorage.setItem('guestPlaylists', JSON.stringify(updatedPlaylists));
+        
+        return guestPlaylist;
+      } else {
+        // For registered users, create in database
+        const result = await apiRequest("POST", "/api/playlists", {
+          userId,
+          name,
+          description,
+          tracks: [],
+        });
+        return result;
+      }
     },
     onSuccess: (data) => {
       console.log("Playlist created successfully:", data);
       
-      // Invalidate ALL playlist queries to ensure proper sync
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/playlists"],
-        exact: false 
-      });
-      
-      // Also invalidate the specific query key used by the sidebar
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/playlists", "user", userId],
-        exact: true 
-      });
-      
-      // Force refetch the sidebar playlists
-      queryClient.refetchQueries({ 
-        queryKey: ["/api/playlists", "user", userId],
-        exact: true 
-      });
+      if (userId === "guest") {
+        // For guest users, invalidate the guest playlists query
+        queryClient.invalidateQueries({ 
+          queryKey: ["guestPlaylists"],
+          exact: true 
+        });
+      } else {
+        // For registered users, invalidate database playlists
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/playlists"],
+          exact: false 
+        });
+        
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/playlists", "user", userId],
+          exact: true 
+        });
+      }
       
       toast({
         title: "Playlist created",

@@ -5,6 +5,7 @@ import { JamendoTrack } from "@/types/music";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useAuth } from "@/contexts/auth-context";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -18,9 +19,13 @@ interface TrackCardProps {
 
 export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [userId] = useLocalStorage("userId", "guest");
+  const [localUserId] = useLocalStorage("userId", "guest");
+  const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Use authenticated user ID if available, otherwise fall back to local storage
+  const userId = isAuthenticated && user ? user.id : localUserId;
 
   // Use the main favorites list to check if this track is favorited
   const { data: favorites = [] } = useQuery({
@@ -28,11 +33,29 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
     enabled: !!userId,
   });
 
-  // Fetch playlists for add-to-playlist menu
-  const { data: playlists = [] } = useQuery({
+  // Fetch database playlists for registered users
+  const { data: dbPlaylists = [] } = useQuery({
     queryKey: ["/api/playlists", "user", userId],
-    enabled: !!userId && userId !== "guest",
+    enabled: !!userId && userId !== "guest" && isAuthenticated,
   });
+
+  // Fetch guest playlists from local storage
+  const { data: guestPlaylists = [] } = useQuery({
+    queryKey: ["guestPlaylists"],
+    enabled: userId === "guest",
+    queryFn: () => {
+      try {
+        const stored = localStorage.getItem('guestPlaylists');
+        return stored ? JSON.parse(stored) : [];
+      } catch (error) {
+        console.error('Error reading guest playlists:', error);
+        return [];
+      }
+    },
+  });
+
+  // Combine playlists based on user type
+  const playlists = userId === "guest" ? guestPlaylists : dbPlaylists;
 
   // Check if this track is in the favorites list
   const isFavorite = (favorites as any[]).some((fav: any) => fav.trackId === track.id);
@@ -100,8 +123,17 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
 
   const addToPlaylistMutation = useMutation({
     mutationFn: async (playlistId: string) => {
-      const response = await apiRequest("POST", `/api/playlists/${playlistId}/tracks`, {
-        track: {
+      if (userId === "guest") {
+        // For guest users, add to local storage playlist
+        const existingPlaylists = JSON.parse(localStorage.getItem('guestPlaylists') || '[]');
+        const playlistIndex = existingPlaylists.findIndex((p: any) => p.id === playlistId);
+        
+        if (playlistIndex === -1) {
+          throw new Error('Playlist not found');
+        }
+        
+        const playlist = existingPlaylists[playlistIndex];
+        const trackData = {
           id: track.id,
           name: track.name,
           artist_name: track.artist_name,
@@ -109,29 +141,76 @@ export function TrackCard({ track, onPlay, isPlaying, className }: TrackCardProp
           album_image: track.album_image,
           audio: track.audio,
           duration: track.duration,
-        },
-      });
-      return response;
+        };
+        
+        // Check if track already exists
+        const trackExists = playlist.tracks.some((t: any) => t.id === track.id);
+        if (trackExists) {
+          return { alreadyExists: true };
+        }
+        
+        // Add track to playlist
+        playlist.tracks.push(trackData);
+        existingPlaylists[playlistIndex] = playlist;
+        localStorage.setItem('guestPlaylists', JSON.stringify(existingPlaylists));
+        
+        return { success: true };
+      } else {
+        // For registered users, add to database playlist
+        const response = await apiRequest("POST", `/api/playlists/${playlistId}/tracks`, {
+          track: {
+            id: track.id,
+            name: track.name,
+            artist_name: track.artist_name,
+            album_name: track.album_name,
+            album_image: track.album_image,
+            audio: track.audio,
+            duration: track.duration,
+          },
+        });
+        return response;
+      }
     },
     onSuccess: (response, playlistId) => {
-      // Invalidate ALL playlist queries to ensure proper sync
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/playlists"],
-        exact: false 
-      });
-      
-      // Show appropriate message based on response
-      if (response.alreadyExists) {
-        toast({
-          title: "Already in playlist",
-          description: `${track.name} is already in this playlist`,
-          variant: "default",
+      if (userId === "guest") {
+        // For guest users, invalidate the guest playlists query
+        queryClient.invalidateQueries({ 
+          queryKey: ["guestPlaylists"],
+          exact: true 
         });
+        
+        if (response.alreadyExists) {
+          toast({
+            title: "Already in playlist",
+            description: `${track.name} is already in this playlist`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Added to playlist",
+            description: `${track.name} was added successfully`,
+          });
+        }
       } else {
-        toast({
-          title: "Added to playlist",
-          description: `${track.name} was added successfully`,
+        // For registered users, invalidate database playlists
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/playlists"],
+          exact: false 
         });
+        
+        // Show appropriate message based on response
+        if (response.alreadyExists) {
+          toast({
+            title: "Already in playlist",
+            description: `${track.name} is already in this playlist`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Added to playlist",
+            description: `${track.name} was added successfully`,
+          });
+        }
       }
     },
     onError: () => {
