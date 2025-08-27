@@ -199,23 +199,20 @@ export function Sidebar() {
             {/* Authentication Section */}
             <div className="mt-8 border-t border-spotify-dark-gray/30 pt-6">
               {isAuthenticated && user ? (
-                <div className="px-3 mb-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                <div className="px-3">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                       {user.username.charAt(0).toUpperCase()}
                     </div>
-                    <div>
-                      <p className="text-white font-medium text-sm">{user.username}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-white font-medium text-sm truncate">{user.username}</p>
                       <p className="text-spotify-light-gray text-xs">Signed in</p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
-                    onClick={() => {
-                      logout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-2 pt-2"
+                    onClick={logout}
+                    className="flex items-center gap-3 px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors rounded-md w-full justify-start"
                   >
                     <LogOut className="w-5 h-5" />
                     Sign Out
@@ -229,7 +226,7 @@ export function Sidebar() {
                       setLocation("/login");
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center gap-3 px-3 py-3 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray w-full justify-start"
+                    className="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray w-full justify-start"
                   >
                     <LogIn className="w-5 h-5" />
                     Sign In
@@ -240,7 +237,7 @@ export function Sidebar() {
                       setLocation("/signup");
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center gap-3 px-3 py-3 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray w-full justify-start"
+                    className="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray w-full justify-start"
                   >
                     <User className="w-5 h-5" />
                     Create Account
@@ -273,7 +270,7 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 px-3">
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = location === item.href;
@@ -282,13 +279,11 @@ export function Sidebar() {
                 <li key={item.name}>
                   <Link href={item.href}>
                     <a
-                      className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                        isActive
-                          ? "text-white bg-spotify-dark-gray"
-                          : "text-spotify-light-gray hover:text-white hover:bg-spotify-dark-gray"
+                      className={`flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray cursor-pointer ${
+                        isActive ? "text-white bg-spotify-dark-gray" : ""
                       }`}
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-5 h-5 flex-shrink-0" />
                       {item.name}
                     </a>
                   </Link>
@@ -298,11 +293,11 @@ export function Sidebar() {
           </ul>
 
           {/* Playlists Section */}
-          <div className="mt-8">
-            <h3 className="text-spotify-light-gray font-semibold mb-4 px-3">
+          <div className="mt-6">
+            <h3 className="text-spotify-light-gray font-semibold mb-3 px-3">
               Your Playlists
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {(playlists as any[]).map((playlist: any) => {
                 const isActive = location === `/playlist/${playlist.id}`;
                 return (
@@ -313,7 +308,7 @@ export function Sidebar() {
                           isActive ? "text-white bg-spotify-dark-gray" : ""
                         }`}
                       >
-                        <List className="w-5 h-5" />
+                        <List className="w-5 h-5 flex-shrink-0" />
                         <span className="truncate">{playlist.name}</span>
                       </a>
                     </Link>
@@ -326,7 +321,7 @@ export function Sidebar() {
               onClick={() => setShowPlaylistDialog(true)}
               className="flex items-center gap-3 px-3 py-2 text-spotify-light-gray hover:text-white transition-colors rounded-md hover:bg-spotify-dark-gray w-full justify-start mt-2"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-5 h-5 flex-shrink-0" />
               Create Playlist
             </Button>
           </div>
@@ -334,13 +329,13 @@ export function Sidebar() {
           {/* Authentication Section */}
           <div className="mt-8 border-t border-spotify-dark-gray/30 pt-6">
             {isAuthenticated && user ? (
-              <div className="px-3 mb-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+              <div className="px-3">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                     {user.username.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <p className="text-white font-medium text-sm">{user.username}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white font-medium text-sm truncate">{user.username}</p>
                     <p className="text-spotify-light-gray text-xs">Signed in</p>
                   </div>
                 </div>
