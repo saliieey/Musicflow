@@ -82,6 +82,39 @@ app.use((req, res, next) => {
     log(`🚀 MusicFlow server running on port ${port}`);
     log(`🌐 Frontend: http://localhost:${port}`);
     log(`🔌 API: http://localhost:${port}/api`);
+    
+      // Show a safe summary of the database connection for demonstration
+      const mask = (value?: string | number) => {
+        if (value === undefined || value === null) return "(not set)";
+        const s = String(value);
+        if (s.length <= 4) return "****";
+        return "*".repeat(Math.max(0, s.length - 4)) + s.slice(-4);
+      };
+
+      const maskDatabaseUrl = (url?: string) => {
+        if (!url) return "(not set)";
+        try {
+          // try to parse a postgres URL and mask the password
+          const parsed = new URL(url);
+          if (parsed.password) parsed.password = mask(parsed.password);
+          // hide long query strings
+          parsed.search = parsed.search ? "?…" : "";
+          return parsed.toString();
+        } catch (e) {
+          return mask(url);
+        }
+      };
+
+      const dbSummary = [
+        `   Host: ${config.DB_HOST}`,
+        `   Port: ${config.DB_PORT}`,
+        `   Name: ${config.DB_NAME}`,
+        `   User: ${config.DB_USER}`,
+        `   Password: ${mask(config.DB_PASSWORD)}`,
+        `   URL: ${maskDatabaseUrl(config.DATABASE_URL)}`,
+      ].join("\n");
+
+      log("📋 Database details (sensitive values masked):\n" + dbSummary);
     if (dbConnected) {
       log(`💾 Database: Connected to PostgreSQL`);
     } else {
