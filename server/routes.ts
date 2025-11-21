@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { PostgresStorage } from "./postgres-storage.js";
 import { insertPlaylistSchema, insertFavoriteSchema, insertUserSchema } from "@shared/schema";
-import { config } from "../config.js";
+import { config } from "../config";
 import bcrypt from "bcryptjs";
 
 // Create storage instance

@@ -1,18 +1,21 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pkg from 'pg';
 const { Pool } = pkg;
-import { config } from '../config.js';
+import { config } from '../config';
 
 // Create a PostgreSQL connection pool
 const pool = new Pool({
-  host: config.DB_HOST,
-  port: config.DB_PORT,
-  database: config.DB_NAME,
-  user: config.DB_USER,
-  password: config.DB_PASSWORD,
+  // We use the full URL because it contains all the details correctly
+  connectionString: config.DATABASE_URL,
+  
+  // ✅ THIS IS THE FIX: Render requires SSL
+  ssl: {
+    rejectUnauthorized: false,
+  },
+  
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000, // Increased timeout slightly
 });
 
 // Create drizzle instance
@@ -34,4 +37,4 @@ export async function testConnection() {
 // Close database connection
 export async function closeConnection() {
   await pool.end();
-} 
+}

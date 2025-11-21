@@ -1,5 +1,5 @@
 import { defineConfig } from "drizzle-kit";
-import { config } from "./config.js";
+import { config } from "./config";
 
 if (!config.DATABASE_URL) {
   throw new Error("DATABASE_URL, ensure the database is provisioned");
