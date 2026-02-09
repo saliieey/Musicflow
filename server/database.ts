@@ -3,33 +3,67 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import { config } from '../config';
 
-// Create a PostgreSQL connection pool
+// Create a PostgreSQL connection pool with optimized settings for Render
 const pool = new Pool({
   // We use the full URL because it contains all the details correctly
   connectionString: config.DATABASE_URL,
   
-  // ✅ THIS IS THE FIX: Render requires SSL
+  // ✅ Render requires SSL
   ssl: {
     rejectUnauthorized: false,
   },
   
-  max: 20,
+  // Connection pool settings optimized for Render PostgreSQL
+  max: 10, // Reduced from 20 to avoid connection limits
+  min: 2, // Keep minimum connections alive
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000, // Increased timeout slightly
+  connectionTimeoutMillis: 10000,
+  
+  // Keep connections alive to prevent termination
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+  
+  // Statement timeout to prevent hanging queries
+  statement_timeout: 30000,
+  
+  // Query timeout
+  query_timeout: 30000,
+});
+
+// Handle pool errors to prevent crashes
+pool.on('error', (err, client) => {
+  console.error('⚠️  Database pool error:', err.message);
+  // Don't exit the process, just log the error
+  // The storage wrapper will handle fallback
+});
+
+// Handle connection events
+pool.on('connect', (client) => {
+  console.log('✅ New database client connected');
+});
+
+pool.on('remove', (client) => {
+  console.log('⚠️  Database client removed from pool');
 });
 
 // Create drizzle instance
 export const db = drizzle(pool);
 
 // Test database connection
-export async function testConnection() {
+// silent: if true, don't log errors (useful for periodic checks)
+export async function testConnection(silent: boolean = false) {
   try {
     const client = await pool.connect();
-    console.log('✅ Database connected successfully!');
+    if (!silent) {
+      console.log('✅ Database connected successfully!');
+    }
     client.release();
     return true;
-  } catch (error) {
-    console.error('❌ Database connection failed:', error);
+  } catch (error: any) {
+    // Only log errors if not silent (for initial connection check)
+    if (!silent) {
+      console.error('❌ Database connection failed:', error?.message || error);
+    }
     return false;
   }
 }

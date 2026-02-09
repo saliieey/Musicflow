@@ -1,12 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { PostgresStorage } from "./postgres-storage.js";
+import { StorageWrapper } from "./storage-wrapper.js";
 import { insertPlaylistSchema, insertFavoriteSchema, insertUserSchema } from "@shared/schema";
 import { config } from "../config";
 import bcrypt from "bcryptjs";
 
-// Create storage instance
-const storage = new PostgresStorage();
+// Create storage instance with automatic fallback
+const storage = new StorageWrapper();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication API
@@ -259,11 +259,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User ID is required" });
       }
       
+      // Storage wrapper handles fallback automatically
       const favorites = await storage.getUserFavorites(userId);
-      
       res.json(favorites);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch favorites" });
+    } catch (error: any) {
+      console.error('Error fetching favorites:', error);
+      res.status(500).json({ 
+        error: "Internal server error",
+        message: "An error occurred while fetching favorites. Please try again later."
+      });
     }
   });
 
@@ -276,10 +280,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('Adding favorite for user:', userId, 'track:', req.body.trackId);
-      const validatedData = insertFavoriteSchema.parse(req.body);
       
-      // Check if already exists
+      // Validate request data first
+      let validatedData;
+      try {
+        validatedData = insertFavoriteSchema.parse(req.body);
+      } catch (validationError: any) {
+        console.error('Validation error:', validationError);
+        return res.status(400).json({ 
+          error: "Invalid favorite data",
+          details: validationError.errors || validationError.message 
+        });
+      }
+      
+      // Check if already exists (storage wrapper handles fallback automatically)
       const existingFavorite = await storage.isFavorite(userId, validatedData.trackId);
+      
       if (existingFavorite) {
         console.log('Track already in favorites for user:', userId);
         // Return success but indicate it was already favorited
@@ -289,13 +305,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Add favorite (storage wrapper handles fallback automatically)
       const favorite = await storage.addFavorite(userId, validatedData);
       console.log('Added favorite successfully:', favorite.id);
       
       res.status(201).json(favorite);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding favorite:', error);
-      res.status(400).json({ error: "Invalid favorite data" });
+      res.status(500).json({ 
+        error: "Internal server error",
+        message: "An error occurred while adding to favorites. Please try again later."
+      });
     }
   });
 
@@ -310,13 +330,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Removing favorite for user:', userId, 'track:', trackId);
       
-      // Check if favorite exists before trying to remove
+      // Check if favorite exists (storage wrapper handles fallback automatically)
       const exists = await storage.isFavorite(userId, trackId);
+      
       if (!exists) {
         console.log('Favorite not found for user:', userId, 'track:', trackId);
         return res.status(404).json({ error: "Favorite not found" });
       }
       
+      // Remove favorite (storage wrapper handles fallback automatically)
       const removed = await storage.removeFavorite(userId, trackId);
       
       if (!removed) {
@@ -326,9 +348,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Removed favorite successfully for user:', userId, 'track:', trackId);
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error removing favorite:', error);
-      res.status(500).json({ error: "Failed to remove favorite" });
+      res.status(500).json({ 
+        error: "Internal server error",
+        message: "An error occurred while removing favorite. Please try again later."
+      });
     }
   });
 
@@ -341,11 +366,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User ID is required" });
       }
       
+      // Storage wrapper handles fallback automatically
       const isFavorite = await storage.isFavorite(userId, trackId);
-      
       res.json({ isFavorite });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to check favorite status" });
+    } catch (error: any) {
+      console.error('Error checking favorite status:', error);
+      res.status(500).json({ 
+        error: "Internal server error",
+        message: "An error occurred while checking favorite status. Please try again later."
+      });
     }
   });
 

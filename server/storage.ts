@@ -10,7 +10,7 @@ export interface IStorage {
   getPlaylist(id: string): Promise<Playlist | undefined>;
   createPlaylist(userId: string, playlist: InsertPlaylist): Promise<Playlist>;
   updatePlaylist(id: string, playlist: Partial<InsertPlaylist>): Promise<Playlist | undefined>;
-  deletePlaylist(id: string): Promise<boolean>;
+  deletePlaylist(id: string, userId: string): Promise<boolean>;
   addTrackToPlaylist(playlistId: string, track: any): Promise<Playlist | undefined>;
   removeTrackFromPlaylist(playlistId: string, trackId: string): Promise<Playlist | undefined>;
   

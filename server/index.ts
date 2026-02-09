@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { config } from "../config";
-import { testConnection } from "./database.js";
 
 const app = express();
 app.use(express.json());
@@ -39,16 +38,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Test database connection first
-  log("🔌 Testing database connection...");
-  const dbConnected = await testConnection();
-  
-  if (!dbConnected) {
-    log("⚠️  Warning: Database connection failed. App will continue with limited functionality.");
-    log("💡 Make sure PostgreSQL is running and credentials are correct in config.js");
-  } else {
-    log("✅ Database connected successfully!");
-  }
+  // Note: Database connection is now handled by StorageWrapper
+  // It will automatically fall back to in-memory storage if database is unavailable
+  log("🔌 Database connection will be checked by StorageWrapper...");
 
   const server = await registerRoutes(app);
 
@@ -111,10 +103,6 @@ app.use((req, res, next) => {
       ].join("\n");
 
       log("📋 Database details (sensitive values masked):\n" + dbSummary);
-    if (dbConnected) {
-      log(`💾 Database: Connected to PostgreSQL`);
-    } else {
-      log(`⚠️  Database: Not connected - using fallback storage`);
-    }
+      log(`💾 Database connection status: Check StorageWrapper logs above`);
   });
 })();
